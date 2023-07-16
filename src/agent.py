@@ -117,6 +117,12 @@ class Agent:
     def set_id(self, id: int) -> None:
         self.id = id
 
+    def get_id(self) -> int:
+        return self.id
+
     def set_report(self, report: list) -> None:
         self.report = report
+
+    def get_budget(self) -> int:
+        return self.budget
     

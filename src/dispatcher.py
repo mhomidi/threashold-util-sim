@@ -33,6 +33,10 @@ class Dipatcher:
         return True
 
     def set_bid(self, agent_id: int, bid: list) -> None:
-        self.report[agent_id] = bid
+        self.report[agent_id] = [self.agents[agent_id].get_budget(), bid]
+        self.report_update[agent_id] = True
+
+    def get_report(self) -> list:
+        return self.report
 
     
