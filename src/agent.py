@@ -9,7 +9,6 @@ CLUSTERS_NUMBER = 10
 EPSILON = 1e-3
 
 
-
 class Agent:
     def __init__(self, budget: int = int(DEFAULT_TOTAL_BUDGET / DEFAULT_N)) -> None:
         self.budget = budget
@@ -73,8 +72,6 @@ class Agent:
             if element in my_assignments:
                 sorted_assigned_pref.append(element)
         sorted_assigned_pref.reverse()
-        print("assigned:", sorted_assigned_pref)
-        print("utils:", self.utils)
         l = len(sorted_assigned_pref)
         # TODO: need to find xs and update losses and weights
         start, end = 0, 0
@@ -125,4 +122,7 @@ class Agent:
 
     def get_budget(self) -> int:
         return self.budget
+    
+    def set_budget(self, budget: int) -> None:
+        self.budget = budget
     

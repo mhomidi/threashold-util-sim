@@ -37,3 +37,9 @@ class Scheduler:
     
     def set_report(self, report: list) -> None:
         self.report = report
+
+    def get_new_budgets(self):
+        new_budgets = list()
+        for agent in self.report:
+            new_budgets.append(agent[0])
+        return new_budgets

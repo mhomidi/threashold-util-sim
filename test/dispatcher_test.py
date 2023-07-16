@@ -16,6 +16,8 @@ class TestDispatcher(unittest.TestCase):
         a1 = Agent()
         a2 = Agent()
         dp = Dipatcher()
+        sched = Scheduler()
+        dp.set_scheduler(sched)
 
         dp.add_agent(a1)
         assert(len(dp.agents) == 1)
@@ -27,6 +29,8 @@ class TestDispatcher(unittest.TestCase):
         agent1 = Agent()
         agent2 = Agent()
         dp = Dipatcher()
+        sched = Scheduler()
+        dp.set_scheduler(sched)
         dp.add_agent(agent1)
         dp.add_agent(agent2)
 
@@ -45,6 +49,8 @@ class TestDispatcher(unittest.TestCase):
         agent1 = Agent()
         agent2 = Agent()
         dp = Dipatcher()
+        sched = Scheduler()
+        dp.set_scheduler(sched)
         dp.add_agent(agent1)
         dp.add_agent(agent2)
 
@@ -65,6 +71,27 @@ class TestDispatcher(unittest.TestCase):
         assert(agent1.report == report)
         assert(agent2.report == report)
 
+    def test_update_budget(self):
+        agent1 = Agent()
+        agent2 = Agent()
+        dp = Dipatcher()
+        sched = Scheduler()
+        dp.set_scheduler(sched)
+        dp.add_agent(agent1)
+        dp.add_agent(agent2)
+
+        a1_pref = agent1.get_preferences(agent1.get_u_thr())
+        a2_pref = agent2.get_preferences(agent2.get_u_thr())
+        dp.set_bid(agent1.get_id(), a1_pref)
+        dp.set_bid(agent2.get_id(), a2_pref)
+
+        sched.set_report(dp.get_report())
+        sched.schedule()
+        new_b = sched.get_new_budgets()
+        dp.update_budgets(new_b)
+
+        assert(agent1.get_budget() == new_b[0])
+        assert(agent2.get_budget() == new_b[1])
 
 
 if __name__ == "__main__":

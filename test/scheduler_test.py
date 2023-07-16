@@ -23,9 +23,9 @@ class TestScheduler(unittest.TestCase):
         alloc = sched.schedule()
 
         assert(alloc == [0, 0, 0, 0, -1, 2, -1, 1, 2, -1])
-        assert(sched.report[0][0] == 6)
-        assert(sched.report[1][0] == 7)
-        assert(sched.report[2][0] == 7)
+
+        new_b = sched.get_new_budgets()
+        assert(new_b == [6, 7, 7])
 
 
 if __name__ == "__main__":

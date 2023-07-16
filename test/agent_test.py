@@ -39,10 +39,6 @@ class TestAgent(unittest.TestCase):
             else:
                 break
             l -= 1
-        print(true_pref)
-        print(agent1.utils)
-        for i in true_pref:
-            print(agent1.utils[i])
         assert(true_pref == agent_pref)
 
     def test_agent_train(self):

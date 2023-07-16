@@ -7,7 +7,7 @@ from src.agent import Agent
 class Dipatcher:
     def __init__(self) -> None:
         self.agents = list()
-        self.sched = Scheduler()
+        self.sched = None
         self.report = list()
         self.report_update = list()
         self.last_id = 0
@@ -38,5 +38,12 @@ class Dipatcher:
 
     def get_report(self) -> list:
         return self.report
+    
+    def set_scheduler(self, sched: Scheduler) -> None:
+        self.sched = sched
+    
+    def update_budgets(self, budgets):
+        for id, agent in enumerate(self.agents):
+            agent.set_budget(budgets[id])
 
     
