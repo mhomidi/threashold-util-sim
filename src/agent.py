@@ -10,11 +10,11 @@ EPSILON = 1e-3
 
 
 class Agent:
-    def __init__(self, budget: int = int(DEFAULT_TOTAL_BUDGET / DEFAULT_N)) -> None:
+    def __init__(self, budget: int = int(DEFAULT_TOTAL_BUDGET / DEFAULT_N), n=DEFAULT_N) -> None:
         self.budget = budget
         self.weights = list()
         self.loss = list()
-        for i in range(budget):
+        for i in range(budget * n):
             self.weights.append(np.ones(DIST_SAMPLE_NUMBER))
             self.loss.append(np.zeros(DIST_SAMPLE_NUMBER))
         self.utils = np.random.rand(CLUSTERS_NUMBER).tolist()
@@ -22,11 +22,11 @@ class Agent:
     
     def get_u_thr(self):
         dist = self.weights[self.budget - 1]
-        rand = np.random.random()
+        rand = np.random.random() * sum(dist)
         self.u_threshold = 0
         sum2uthr = 0.
         for index, p in enumerate(dist):
-            sum2uthr += p / DIST_SAMPLE_NUMBER
+            sum2uthr += p
             if sum2uthr >= rand:
                 self.u_threshold = float(index) / DIST_SAMPLE_NUMBER
                 break

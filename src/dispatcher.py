@@ -2,9 +2,10 @@
 
 from src.scheduler import Scheduler
 from src.agent import Agent
+import copy
 
 
-class Dipatcher:
+class Dispatcher:
     def __init__(self) -> None:
         self.agents = list()
         self.sched = None
@@ -23,8 +24,8 @@ class Dipatcher:
         if not self.is_report_new():
             return
         for agent in self.agents:
-            agent.set_report(self.report)
-        self.sched.set_report(self.report)
+            agent.set_report(copy.deepcopy(self.report))
+        self.sched.set_report(copy.deepcopy(self.report))
     
     def is_report_new(self):
         for i in range(self.last_id):

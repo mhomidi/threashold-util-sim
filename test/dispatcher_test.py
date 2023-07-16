@@ -15,7 +15,7 @@ class TestDispatcher(unittest.TestCase):
     def test_add_agent(self):
         a1 = Agent()
         a2 = Agent()
-        dp = Dipatcher()
+        dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
 
@@ -28,7 +28,7 @@ class TestDispatcher(unittest.TestCase):
     def test_set_bid(self):
         agent1 = Agent()
         agent2 = Agent()
-        dp = Dipatcher()
+        dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
         dp.add_agent(agent1)
@@ -48,7 +48,7 @@ class TestDispatcher(unittest.TestCase):
     def test_dispatch_report(self):
         agent1 = Agent()
         agent2 = Agent()
-        dp = Dipatcher()
+        dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
         dp.add_agent(agent1)
@@ -74,7 +74,7 @@ class TestDispatcher(unittest.TestCase):
     def test_update_budget(self):
         agent1 = Agent()
         agent2 = Agent()
-        dp = Dipatcher()
+        dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
         dp.add_agent(agent1)
