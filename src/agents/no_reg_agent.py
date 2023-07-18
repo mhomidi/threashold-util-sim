@@ -3,10 +3,12 @@ from src.scheduler import Scheduler
 from src.agents import Agent
 
 
+from config.config import *
+
+
 DIST_SAMPLE_NUMBER = 10
 DEFAULT_N = 10
 DEFAULT_TOTAL_BUDGET = 100
-CLUSTERS_NUMBER = 10
 EPSILON = 1e-3
 
 
@@ -17,7 +19,6 @@ class NoRegretAgent(Agent):
         for i in range(budget * n):
             self.weights.append(np.ones(DIST_SAMPLE_NUMBER))
             self.loss.append(np.zeros(DIST_SAMPLE_NUMBER))
-        self.utils = np.random.rand(CLUSTERS_NUMBER).tolist()
         self.report = None
         super(NoRegretAgent, self).__init__(budget)
     

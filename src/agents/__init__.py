@@ -1,4 +1,7 @@
 
+import numpy as np
+from config.config import *
+
 
 CLUSTERS_NUMBER = 10
 
@@ -6,9 +9,13 @@ class Agent:
     
     def __init__(self, budget: int) -> None:
         self.budget = budget
+        self.utils = np.random.rand(CLUSTERS_NUM).tolist()
 
     def get_u_thr(self):
-        raise NotImplemented()
+        raise NotImplementedError()
+
+    def train(self):
+        raise NotImplementedError()
 
     def get_preferences(self, threshold: float) -> list:
         us = self.utils.copy()
@@ -39,3 +46,9 @@ class Agent:
     
     def set_budget(self, budget: int) -> None:
         self.budget = budget
+
+    def set_assignment(self, assignment: list) -> None:
+        self.assignment = assignment
+
+    def update_utils(self):
+        self.utils = np.random.rand(CLUSTERS_NUM).tolist()
