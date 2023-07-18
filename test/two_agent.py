@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 from src.agent import Agent
 from src.scheduler import Scheduler
 from src.dispatcher import Dispatcher
+from src.utils import Reporter
 
 MAX_COUNT = 1e4
 
@@ -40,4 +41,7 @@ if __name__ == "__main__":
         
         count += 1
 
+    reporter = Reporter()
+    reporter.write_weights(a1)
+    reporter.write_weights(a2)
     
