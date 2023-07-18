@@ -1,7 +1,8 @@
 
 
 from src.scheduler import Scheduler
-from src.agent import Agent
+# from src.agents.no_reg_agent import NoRegretAgent
+from src.agents import Agent
 import copy
 
 

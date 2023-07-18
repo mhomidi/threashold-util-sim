@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
-from src.agent import Agent
+from src.agents.no_reg_agent import NoRegretAgent
 from src.scheduler import Scheduler
 from src.dispatcher import Dispatcher
 from src.utils import Reporter
@@ -10,8 +10,8 @@ from src.utils import Reporter
 MAX_COUNT = 1e4
 
 if __name__ == "__main__":
-    a1 = Agent(10, 2)
-    a2 = Agent(10, 2)
+    a1 = NoRegretAgent(10, 2)
+    a2 = NoRegretAgent(10, 2)
     dp = Dispatcher()
     sched = Scheduler()
 

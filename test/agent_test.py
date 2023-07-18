@@ -5,21 +5,21 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 
-from src.agent import *
+from src.agents.no_reg_agent import *
 import unittest
 import matplotlib.pyplot as plt
 
 class TestAgent(unittest.TestCase):
 
     def test_agent_init(self):
-        agent1 = Agent(budget=10)
+        agent1 = NoRegretAgent(budget=10)
         agent1.set_id(0)
         assert(len(agent1.weights) == agent1.budget)
         assert(len(agent1.loss) == agent1.budget)
         assert(len(agent1.utils) == CLUSTERS_NUMBER)
 
     def test_agent_pref(self):
-        agent1 = Agent()
+        agent1 = NoRegretAgent()
         agent1.set_id(0)
         
         u_thr = agent1.get_u_thr()
@@ -42,7 +42,7 @@ class TestAgent(unittest.TestCase):
         assert(true_pref == agent_pref)
 
     def test_agent_train(self):
-        agent1 = Agent(budget=10)
+        agent1 = NoRegretAgent(budget=10)
         agent1.set_id(0)
         pref = agent1.get_preferences(agent1.get_u_thr())
         report = [

@@ -1,17 +1,17 @@
 import numpy as np
 from src.scheduler import Scheduler
+from src.agents import Agent
 
 
-DIST_SAMPLE_NUMBER = 1000
+DIST_SAMPLE_NUMBER = 10
 DEFAULT_N = 10
 DEFAULT_TOTAL_BUDGET = 100
 CLUSTERS_NUMBER = 10
 EPSILON = 1e-3
 
 
-class Agent:
+class NoRegretAgent(Agent):
     def __init__(self, budget: int = int(DEFAULT_TOTAL_BUDGET / DEFAULT_N), n=DEFAULT_N) -> None:
-        self.budget = budget
         self.weights = list()
         self.loss = list()
         for i in range(budget * n):
@@ -19,6 +19,7 @@ class Agent:
             self.loss.append(np.zeros(DIST_SAMPLE_NUMBER))
         self.utils = np.random.rand(CLUSTERS_NUMBER).tolist()
         self.report = None
+        super(NoRegretAgent, self).__init__(budget)
     
     def get_u_thr(self):
         dist = self.weights[self.budget - 1]
@@ -39,21 +40,6 @@ class Agent:
     def update_weight(self, xs):
         l = self.loss[self.budget - 1][xs]
         self.weights[self.budget - 1][xs] *= np.exp(EPSILON * l)
-
-    def get_preferences(self, threshold: float) -> list:
-        us = self.utils.copy()
-        pref = []
-        l = CLUSTERS_NUMBER - 1
-        while l >= 0:
-            m = max(us)
-            if m >= threshold:
-                c_id = us.index(m)
-                pref.append(c_id)
-                us[c_id] = -1.
-            else:
-                break
-            l -= 1
-        return pref
             
     def train(self):
         if not self.report:
@@ -110,19 +96,3 @@ class Agent:
     
     def get_expected_util_per_token(self):
         return sum(self.utils) / float(len(self.utils))
-
-    def set_id(self, id: int) -> None:
-        self.id = id
-
-    def get_id(self) -> int:
-        return self.id
-
-    def set_report(self, report: list) -> None:
-        self.report = report
-
-    def get_budget(self) -> int:
-        return self.budget
-    
-    def set_budget(self, budget: int) -> None:
-        self.budget = budget
-    

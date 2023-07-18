@@ -1,6 +1,6 @@
 import csv
 
-from src.agent import Agent
+from src.agents.no_reg_agent import NoRegretAgent
 
 import os
 
@@ -9,7 +9,7 @@ root_dir = os.path.dirname(os.path.abspath(__file__)) + "/.."
 
 class Reporter:
 
-    def write_weights(self, agent: Agent) -> None:
+    def write_weights(self, agent: NoRegretAgent) -> None:
         field = []
         for i in range(len(agent.weights)):
             field.append(str(i))

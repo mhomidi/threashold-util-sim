@@ -6,15 +6,15 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 
 from src.dispatcher import *
-from src.agent import Agent
+from src.agents.no_reg_agent import NoRegretAgent
 
 import unittest
 
 class TestDispatcher(unittest.TestCase):
 
     def test_add_agent(self):
-        a1 = Agent()
-        a2 = Agent()
+        a1 = NoRegretAgent()
+        a2 = NoRegretAgent()
         dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
@@ -26,8 +26,8 @@ class TestDispatcher(unittest.TestCase):
         assert(len(dp.agents) == 2)
 
     def test_set_bid(self):
-        agent1 = Agent()
-        agent2 = Agent()
+        agent1 = NoRegretAgent()
+        agent2 = NoRegretAgent()
         dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
@@ -46,8 +46,8 @@ class TestDispatcher(unittest.TestCase):
         assert(report[1][1] == a2_pref)
 
     def test_dispatch_report(self):
-        agent1 = Agent()
-        agent2 = Agent()
+        agent1 = NoRegretAgent()
+        agent2 = NoRegretAgent()
         dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
@@ -72,8 +72,8 @@ class TestDispatcher(unittest.TestCase):
         assert(agent2.report == report)
 
     def test_update_budget(self):
-        agent1 = Agent()
-        agent2 = Agent()
+        agent1 = NoRegretAgent()
+        agent2 = NoRegretAgent()
         dp = Dispatcher()
         sched = Scheduler()
         dp.set_scheduler(sched)
