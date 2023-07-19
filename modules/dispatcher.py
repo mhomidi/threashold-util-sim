@@ -44,8 +44,12 @@ class Dispatcher:
     def set_scheduler(self, sched: Scheduler) -> None:
         self.sched = sched
     
-    def update_budgets(self, budgets):
+    def update_budgets(self, budgets) -> None:
         for id, agent in enumerate(self.agents):
             agent.set_budget(budgets[id])
+
+    def dispatch_assignments(self, assignments: list) -> None:
+        for agent in self.agents:
+            agent.set_assignment(assignments)
 
     

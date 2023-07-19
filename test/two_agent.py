@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 from modules.agents.no_reg_agent import NoRegretAgent
 from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
-from utils.report import Reporter
+from utils.report import NRAgentReporter
 
 MAX_COUNT = 1e4
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         
         count += 1
 
-    reporter = Reporter()
+    reporter = NRAgentReporter()
     reporter.write_weights(a1)
     reporter.write_weights(a2)
     

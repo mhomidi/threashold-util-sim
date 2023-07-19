@@ -36,12 +36,12 @@ class ActorCriticAgent(Agent):
 
 
     def train(self):
-        reward = self.calculate_util(self.assignment)
-        print("a{id} gets {reward:.2f} with b={budget}".format(id=self.id+1, reward=reward, budget=self.prev_budget))
+        self.round_util = self.get_round_utility()
+        print("a{id} gets {reward:.2f} with b={budget}".format(id=self.id+1, reward=self.round_util, budget=self.prev_budget))
         next_state = self.budget
 
         _, next_val = self.model(torch.tensor([next_state], dtype=torch.float32))
-        err = reward + DISCOUNT_FACTOR * next_val - self.val
+        err = self.round_util + DISCOUNT_FACTOR * next_val - self.val
 
         actor_loss = -torch.log(self.probs[self.u_thr_index]) * err
         critic_loss = torch.square(err)
@@ -52,7 +52,6 @@ class ActorCriticAgent(Agent):
         loss.backward()
         self.optimizer.step()
 
-
     def get_u_thr(self):
         input_data = [self.budget]
         self.probs, self.val = self.model(torch.tensor(input_data, dtype=torch.float32))
@@ -62,10 +61,3 @@ class ActorCriticAgent(Agent):
     def set_budget(self, budget: int) -> None:
         self.prev_budget = self.budget
         return super().set_budget(budget)
-    
-    def calculate_util(self, assignments: list):
-        util = 0.0
-        for c_id, agent_id in enumerate(assignments):
-            if agent_id == self.id:
-                util += self.utils[c_id]
-        return util

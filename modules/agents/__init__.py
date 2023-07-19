@@ -10,6 +10,7 @@ class Agent:
     def __init__(self, budget: int) -> None:
         self.budget = budget
         self.utils = np.random.rand(CLUSTERS_NUM).tolist()
+        self.round_util = 0
 
     def get_u_thr(self):
         raise NotImplementedError()
@@ -52,3 +53,10 @@ class Agent:
 
     def update_utils(self):
         self.utils = np.random.rand(CLUSTERS_NUM).tolist()
+
+    def get_round_utility(self):
+        util = 0.0
+        for c_id, agent_id in enumerate(self.assignment):
+            if agent_id == self.id:
+                util += self.utils[c_id]
+        return util
