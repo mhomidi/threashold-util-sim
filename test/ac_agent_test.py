@@ -6,9 +6,9 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 
-from src.agents.actor_critic_agent import ActorCriticAgent
-from src.scheduler import Scheduler
-from src.dispatcher import Dispatcher
+from modules.agents.actor_critic_agent import ActorCriticAgent
+from modules.scheduler import Scheduler
+from modules.dispatcher import Dispatcher
 
 EPISODES = 10e2
 

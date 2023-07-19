@@ -2,12 +2,12 @@
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 
-from src.agents.no_reg_agent import *
+from modules.agents.no_reg_agent import *
 import unittest
-import matplotlib.pyplot as plt
+from config.config import *
 
 class TestAgent(unittest.TestCase):
 
@@ -16,7 +16,7 @@ class TestAgent(unittest.TestCase):
         agent1.set_id(0)
         assert(len(agent1.weights) == agent1.budget)
         assert(len(agent1.loss) == agent1.budget)
-        assert(len(agent1.utils) == CLUSTERS_NUMBER)
+        assert(len(agent1.utils) == CLUSTERS_NUM)
 
     def test_agent_pref(self):
         agent1 = NoRegretAgent()

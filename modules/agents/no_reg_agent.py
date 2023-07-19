@@ -1,6 +1,6 @@
 import numpy as np
-from src.scheduler import Scheduler
-from src.agents import Agent
+from modules.scheduler import Scheduler
+from modules.agents import Agent
 
 
 from config.config import *

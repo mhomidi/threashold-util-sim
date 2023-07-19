@@ -2,11 +2,11 @@
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 
-from src.dispatcher import *
-from src.agents.no_reg_agent import NoRegretAgent
+from modules.dispatcher import *
+from modules.agents.no_reg_agent import NoRegretAgent
 
 import unittest
 

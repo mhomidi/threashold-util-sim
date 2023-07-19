@@ -2,10 +2,10 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
-from src.agents.no_reg_agent import NoRegretAgent
-from src.scheduler import Scheduler
-from src.dispatcher import Dispatcher
-from src.utils import Reporter
+from modules.agents.no_reg_agent import NoRegretAgent
+from modules.scheduler import Scheduler
+from modules.dispatcher import Dispatcher
+from utils.report import Reporter
 
 MAX_COUNT = 1e4
 

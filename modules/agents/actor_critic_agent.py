@@ -1,7 +1,7 @@
 
 import torch
 import torch.nn as nn
-from src.agents import Agent
+from modules.agents import Agent
 from config.config import *
 import torch.optim as optim
 import numpy as np

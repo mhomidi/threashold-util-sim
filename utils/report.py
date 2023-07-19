@@ -1,6 +1,6 @@
 import csv
 
-from src.agents.no_reg_agent import NoRegretAgent
+from modules.agents.no_reg_agent import NoRegretAgent
 
 import os
 
