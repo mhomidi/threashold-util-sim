@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from modules.agents.no_reg_agent import NoRegretAgent
-from modules.scheduler import Scheduler
+from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
 from utils.report import Reporter
 
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     a1 = NoRegretAgent(10, 2)
     a2 = NoRegretAgent(10, 2)
     dp = Dispatcher()
-    sched = Scheduler()
+    sched = MostTokenFirstScheduler()
 
     dp.add_agent(a1)
     dp.add_agent(a2)

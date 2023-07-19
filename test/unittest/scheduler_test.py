@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
-from modules.scheduler import *
+from modules.scheduler.MTFscheduler import *
 import copy
 
 import unittest
@@ -18,7 +18,7 @@ class TestScheduler(unittest.TestCase):
             [9, [5, 3, 8]],
         ]
 
-        sched = Scheduler()
+        sched = MostTokenFirstScheduler()
         sched.set_report(copy.deepcopy(report))
         alloc = sched.schedule()
 

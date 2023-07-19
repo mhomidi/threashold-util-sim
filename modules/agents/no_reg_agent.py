@@ -1,5 +1,5 @@
 import numpy as np
-from modules.scheduler import Scheduler
+from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
 from modules.agents import Agent
 
 
@@ -47,7 +47,7 @@ class NoRegretAgent(Agent):
             return
         pref = self.get_preferences(0.0)
         self.report[self.id][1] = pref.copy()
-        s = Scheduler()
+        s = MostTokenFirstScheduler()
         s.set_report(self.report)
         assignments = s.schedule()
         my_assignments = []

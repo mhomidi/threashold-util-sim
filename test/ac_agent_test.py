@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 
 from modules.agents.actor_critic_agent import ActorCriticAgent
-from modules.scheduler import Scheduler
+from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
 
 EPISODES = 10e2
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     for i in range(n):
         agents.append(ActorCriticAgent(10))
 
-    sched = Scheduler()
+    sched = MostTokenFirstScheduler()
     dp = Dispatcher()
 
     for i in range(n):
