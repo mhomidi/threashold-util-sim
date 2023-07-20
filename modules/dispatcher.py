@@ -52,4 +52,7 @@ class Dispatcher:
         for agent in self.agents:
             agent.set_assignment(assignments)
 
+    def get_cluster_util_from_agent(self, cluster_id: int, agent_id: int) -> float:
+        return self.agents[agent_id].get_cluster_utility(cluster_id)
+
     

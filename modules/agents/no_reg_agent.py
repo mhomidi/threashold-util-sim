@@ -1,5 +1,5 @@
 import numpy as np
-from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
+from modules.scheduler.most_token_first import MostTokenFirstScheduler
 from modules.agents import Agent
 from utils.distribution import UniformMeanGenerator
 

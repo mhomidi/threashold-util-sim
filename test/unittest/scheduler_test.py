@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
-from modules.scheduler.MTFscheduler import *
+from modules.scheduler.most_token_first import *
 import copy
 
 import unittest

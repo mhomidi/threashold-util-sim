@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from modules.agents.no_reg_agent import NoRegretAgent
-from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
+from modules.scheduler.most_token_first import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
 from utils.report import NRAgentReporter
 

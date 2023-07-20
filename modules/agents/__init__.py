@@ -62,3 +62,6 @@ class Agent:
             if agent_id == self.id:
                 util += self.utils[c_id]
         return util
+    
+    def get_cluster_utility(self, cluster_id):
+        return self.utils[cluster_id]

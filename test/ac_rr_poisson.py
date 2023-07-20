@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from config.config import *
 from modules.agents.actor_critic_agent import ActorCriticAgent
-from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
+from modules.scheduler.round_robin import RoundRobinScheduler
 from modules.dispatcher import Dispatcher
 from utils.report import Report
 from utils import distribution
@@ -23,7 +23,7 @@ if __name__ == "__main__":
         agents.append(ActorCriticAgent(10, distribution.PoissonMeanGenerator()))
         reporter.add_agent(agents[i])
 
-    sched = MostTokenFirstScheduler()
+    sched = RoundRobinScheduler(n)
     dp = Dispatcher()
 
     for i in range(n):
@@ -32,11 +32,10 @@ if __name__ == "__main__":
     dp.set_scheduler(sched)
 
     for episode in range(int(AC_EPISODES)):
-        reporter.generate_tokens_row()
         prefs = list()
 
         for i in range(n):
-            prefs.append(agents[i].get_preferences(agents[i].get_u_thr()))
+            prefs.append(agents[i].get_preferences(0))
 
         for i in range(n):
             dp.set_bid(agents[i].get_id(), prefs[i])
@@ -45,14 +44,10 @@ if __name__ == "__main__":
 
         assignments = sched.schedule()
         dp.dispatch_assignments(assignments)
-
-        sched.dist_tokens()
-        dp.update_budgets(sched.get_new_budgets())
+        reporter.generate_utilities_row()
 
         for i in range(n):
-            agents[i].train()
             agents[i].update_utils()
-        reporter.generate_utilities_row()
         if episode % 500 == 0:
             print("episode {e} Done".format(e=episode))
     
