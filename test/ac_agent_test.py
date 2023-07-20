@@ -11,8 +11,7 @@ from modules.agents.actor_critic_agent import ActorCriticAgent
 from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
 from utils.report import Report
-
-EPISODES = 10e2
+from utils import distribution
 
 
 if __name__ == "__main__":
@@ -21,7 +20,7 @@ if __name__ == "__main__":
     agents = list()
 
     for i in range(n):
-        agents.append(ActorCriticAgent(10))
+        agents.append(ActorCriticAgent(10, distribution.PoissonMeanGenerator()))
         reporter.add_agent(agents[i])
 
     sched = MostTokenFirstScheduler()
@@ -32,7 +31,7 @@ if __name__ == "__main__":
 
     dp.set_scheduler(sched)
 
-    for episode in range(1000):
+    for episode in range(int(AC_EPISODES)):
         reporter.generate_tokens_row()
         prefs = list()
 
@@ -54,6 +53,9 @@ if __name__ == "__main__":
             agents[i].train()
             agents[i].update_utils()
         reporter.generate_utilities_row()
+        if episode % 500 == 0:
+            print("episode {e} Done".format(e=episode))
+    
     reporter.write_data(UTILITY_DATA_TYPE)
     reporter.write_data(TOKEN_DATA_TYPE)
         

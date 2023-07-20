@@ -1,16 +1,18 @@
 
 import numpy as np
 from config.config import *
+from utils.distribution import UtilityGenerator, UniformMeanGenerator
 
 
 CLUSTERS_NUMBER = 10
 
 class Agent:
     
-    def __init__(self, budget: int) -> None:
+    def __init__(self, budget: int, mean_u_gen=UniformMeanGenerator()) -> None:
         self.budget = budget
         self.utils = np.random.rand(CLUSTERS_NUM).tolist()
         self.round_util = 0
+        self.utility_generator = UtilityGenerator(mean_u_gen)
 
     def get_u_thr(self):
         raise NotImplementedError()
@@ -52,7 +54,7 @@ class Agent:
         self.assignment = assignment
 
     def update_utils(self):
-        self.utils = np.random.rand(CLUSTERS_NUM).tolist()
+        self.utils = self.utility_generator.get_utilities()
 
     def get_round_utility(self):
         util = 0.0

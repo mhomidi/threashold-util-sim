@@ -5,6 +5,7 @@ from modules.agents import Agent
 from config.config import *
 import torch.optim as optim
 import numpy as np
+from utils.distribution import UniformMeanGenerator
 
 
 class Model(nn.Module):
@@ -26,8 +27,8 @@ class Model(nn.Module):
 
 class ActorCriticAgent(Agent):
 
-    def __init__(self, budget: int) -> None:
-        super(ActorCriticAgent, self).__init__(budget)
+    def __init__(self, budget: int, mean_u_gen=UniformMeanGenerator()) -> None:
+        super(ActorCriticAgent, self).__init__(budget, mean_u_gen)
         self.prev_budget = budget
         self.model = Model()
         self.learning_rate = 0.001
@@ -37,7 +38,9 @@ class ActorCriticAgent(Agent):
 
     def train(self):
         self.round_util = self.get_round_utility()
-        print("a{id} gets {reward:.2f} with b={budget}".format(id=self.id+1, reward=self.round_util, budget=self.prev_budget))
+        # print("a{id} reward={reward:.2f} b={budget} threshold={thr:.1f}".format(
+        #     id=self.id+1, reward=self.round_util, budget=self.prev_budget, thr=self.u_thr_index / THRESHOLDS_NUM)
+        #     )
         next_state = self.budget
 
         _, next_val = self.model(torch.tensor([next_state], dtype=torch.float32))

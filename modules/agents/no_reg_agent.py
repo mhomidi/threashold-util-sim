@@ -1,7 +1,7 @@
 import numpy as np
 from modules.scheduler.MTFscheduler import MostTokenFirstScheduler
 from modules.agents import Agent
-
+from utils.distribution import UniformMeanGenerator
 
 from config.config import *
 
@@ -13,14 +13,14 @@ EPSILON = 1e-3
 
 
 class NoRegretAgent(Agent):
-    def __init__(self, budget: int = int(DEFAULT_TOTAL_BUDGET / DEFAULT_N), n=DEFAULT_N) -> None:
+    def __init__(self, budget: int = int(DEFAULT_TOTAL_BUDGET / DEFAULT_N), n=DEFAULT_N, mean_u_gen=UniformMeanGenerator()) -> None:
         self.weights = list()
         self.loss = list()
         for i in range(budget * n):
             self.weights.append(np.ones(DIST_SAMPLE_NUMBER))
             self.loss.append(np.zeros(DIST_SAMPLE_NUMBER))
         self.report = None
-        super(NoRegretAgent, self).__init__(budget)
+        super(NoRegretAgent, self).__init__(budget, mean_u_gen)
     
     def get_u_thr(self):
         dist = self.weights[self.budget - 1]
