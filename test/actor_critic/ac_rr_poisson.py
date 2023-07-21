@@ -52,5 +52,4 @@ if __name__ == "__main__":
             print("episode {e} Done".format(e=episode))
     
     reporter.write_data(UTILITY_DATA_TYPE)
-    reporter.write_data(TOKEN_DATA_TYPE)
         
