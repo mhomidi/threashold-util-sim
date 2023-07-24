@@ -1,50 +1,53 @@
-import numpy as np
+
+import random
 from modules.scheduler.most_token_first import MostTokenFirstScheduler
 from modules.agents import Agent
 from utils.distribution import UniformMeanGenerator
+import math
 
-from config.config import *
-
-
-DIST_SAMPLE_NUMBER = 10
-DEFAULT_N = 10
-DEFAULT_TOTAL_BUDGET = 100
-EPSILON = 1e-3
+from config import config
 
 
 class NoRegretAgent(Agent):
-    def __init__(self, budget: int = int(DEFAULT_TOTAL_BUDGET / DEFAULT_N), n=DEFAULT_N, mean_u_gen=UniformMeanGenerator()) -> None:
+    def __init__(
+            self, budget: int = config.DEFAULT_BUDGET,
+            n=config.DEFAULT_NUM_AGENT,
+            mean_u_gen=UniformMeanGenerator()
+            ) -> None:
         self.weights = list()
         self.loss = list()
         for i in range(budget * n):
-            self.weights.append(np.ones(DIST_SAMPLE_NUMBER))
-            self.loss.append(np.zeros(DIST_SAMPLE_NUMBER))
+            self.weights.append([1. for _ in range(config.DIST_SAMPLE)])
+            self.loss.append([0. for _ in range(config.DIST_SAMPLE)])
         self.report = None
         super(NoRegretAgent, self).__init__(budget, mean_u_gen)
     
     def get_u_thr(self):
         dist = self.weights[self.budget - 1]
-        rand = np.random.random() * sum(dist)
+        rand = random.random() * sum(dist)
         self.u_threshold = 0
         sum2uthr = 0.
         for index, p in enumerate(dist):
             sum2uthr += p
             if sum2uthr >= rand:
-                self.u_threshold = float(index) / DIST_SAMPLE_NUMBER
+                self.u_threshold = float(index) / config.DIST_SAMPLE
                 break
         return self.u_threshold
     
     def update_loss(self, xs, xs_u, best_u):
-        curr_loss = xs_u - best_u
-        self.loss[self.budget - 1][xs] += curr_loss
+        curr_loss = (xs_u - best_u) / best_u
+        for x in xs:
+            self.loss[self.budget - 1][x] += curr_loss
     
     def update_weight(self, xs):
-        l = self.loss[self.budget - 1][xs]
-        self.weights[self.budget - 1][xs] *= np.exp(EPSILON * l)
+        for x in xs:
+            l = self.loss[self.budget - 1][x]
+            self.weights[self.budget - 1][x] = self.weights[self.budget - 1][x] * math.exp(config.EPSILON * l)
             
     def train(self):
         if not self.report:
             return
+        self.prev_budget = self.report[self.id][0]
         pref = self.get_preferences(0.0)
         self.report[self.id][1] = pref.copy()
         s = MostTokenFirstScheduler()
@@ -60,18 +63,20 @@ class NoRegretAgent(Agent):
                 sorted_assigned_pref.append(element)
         sorted_assigned_pref.reverse()
         l = len(sorted_assigned_pref)
-        # TODO: need to find xs and update losses and weights
         start, end = 0, 0
         best_util = self.find_best_util(sorted_assigned_pref)
+        if best_util == -10e10:
+            return
         for i in range(l + 1):
             if i == l:
-                end = DIST_SAMPLE_NUMBER
+                end = config.DIST_SAMPLE
+                u_xs = 0.
             else: 
-                end = int(self.utils[sorted_assigned_pref[i]] * DIST_SAMPLE_NUMBER)
-                # print(start, end, self.utils[sorted_assigned_pref[i]])
+                end = int(self.utils[sorted_assigned_pref[i]] * config.DIST_SAMPLE)
+                u_xs = self.calculate_util(sorted_assigned_pref, i)
             xs = [j for j in range(start, end)]
-            u_xs = self.calculate_util(sorted_assigned_pref, i)
-            # print(start, end, u_xs, best_util)
+            # if u_xs > best_util:
+            #     print(u_xs, best_util)
             self.update_loss(xs, u_xs, best_util)
             self.update_weight(xs)
             start = end
@@ -82,6 +87,7 @@ class NoRegretAgent(Agent):
         best_util = -10e10
         for i in range(len(sorted_assign)):
             util = self.calculate_util(sorted_assign, i)
+            # print("koon:", util)
             if util > best_util:
                 best_util = util
         return best_util
@@ -90,9 +96,12 @@ class NoRegretAgent(Agent):
         
     def calculate_util(self, sorted_assign, index) -> float:
         util = 0
+        spent_token = 0
         for i in range(index, len(sorted_assign)):
             util += self.utils[sorted_assign[i]]
-        return util - ((len(sorted_assign) - index) * self.get_expected_util_per_token())
+            spent_token += 1
+        return util + (self.prev_budget - spent_token) * 0.5
+        # return util - ((len(sorted_assign) - index) * self.get_expected_util_per_token())
         # return util
     
     def get_expected_util_per_token(self):

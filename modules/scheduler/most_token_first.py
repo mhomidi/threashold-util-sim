@@ -9,10 +9,12 @@ class MostTokenFirstScheduler(TokenBaseScheduler):
     def __init__(self) -> None:
         self.last_token_rr_turn = 0
         self.last_random_assign_rr_turn = 0
+        self.gathered_token = 0
         super(MostTokenFirstScheduler, self).__init__()
 
     def schedule(self) -> list:
         self.cluster_assignment = [-1 for i in range(CLUSTERS_NUM)]
+        self.gathered_token = 0
         for cluster_id in range(CLUSTERS_NUM):
             max_budget_agent_index = self.find_max_budget_agent_index()
             if max_budget_agent_index == -1:
@@ -21,6 +23,8 @@ class MostTokenFirstScheduler(TokenBaseScheduler):
             agent_pref = self.report[max_budget_agent_index][1][0]
             self.cluster_assignment[agent_pref] = max_budget_agent_index
             self.report[max_budget_agent_index][0] -= 1
+            self.gathered_token += 1
+
             for agent in self.report:
                 try:
                     agent[1].remove(agent_pref)
@@ -29,10 +33,7 @@ class MostTokenFirstScheduler(TokenBaseScheduler):
         return self.cluster_assignment
 
     def dist_tokens(self) -> None:
-        tokens = 0
-        for a in self.cluster_assignment:
-            if a != -1:
-                tokens += 1
+        tokens = self.gathered_token
         n = len(self.report)
         while tokens > 0:
             self.report[self.last_token_rr_turn % n][0] += 1
@@ -49,7 +50,9 @@ class MostTokenFirstScheduler(TokenBaseScheduler):
         return max_b_idx
     
     def assgin_randomly_available_clusters(self):
+        n = len(self.report)
         for i, agent in enumerate(self.cluster_assignment):
             if agent == -1:
-                self.last_random_assign_rr_turn %= len(self.report)
+                self.last_random_assign_rr_turn %= n
                 self.cluster_assignment[i] = self.last_random_assign_rr_turn
+                self.last_random_assign_rr_turn += 1

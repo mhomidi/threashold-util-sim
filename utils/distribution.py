@@ -2,13 +2,6 @@
 import numpy as np
 from config import config
 
-UNIFORM = 1
-GEOMETRIC = 2
-POISSON = 3
-
-
-    
-
 class MeanGenerator:
 
     def generate_mean(self):
