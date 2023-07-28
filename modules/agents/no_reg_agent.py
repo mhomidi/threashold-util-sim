@@ -10,17 +10,23 @@ from config import config
 
 class NoRegretAgent(Agent):
     def __init__(
-            self, budget: int = config.DEFAULT_BUDGET,
-            n=config.DEFAULT_NUM_AGENT,
-            mean_u_gen=UniformMeanGenerator()
-            ) -> None:
+                self, budget: int = config.DEFAULT_BUDGET,
+                n=config.DEFAULT_NUM_AGENT,
+                u_gen_type=config.U_GEN_MARKOV,
+                mean_u_gen=UniformMeanGenerator(),
+                application=None
+                ) -> None:
         self.weights = list()
         self.loss = list()
         for i in range(budget * n):
             self.weights.append([1. for _ in range(config.DIST_SAMPLE)])
             self.loss.append([0. for _ in range(config.DIST_SAMPLE)])
         self.report = None
-        super(NoRegretAgent, self).__init__(budget, mean_u_gen)
+        super(NoRegretAgent, self).__init__(budget=budget, 
+                                            u_gen_type=u_gen_type, 
+                                            mean_u_gen=mean_u_gen, 
+                                            application=application
+                                            )
     
     def get_u_thr(self):
         dist = self.weights[self.budget - 1]

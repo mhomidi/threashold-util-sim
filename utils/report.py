@@ -2,11 +2,14 @@ import csv
 
 from modules.agents.no_reg_agent import NoRegretAgent
 from modules.agents import Agent
-from config.config import *
 
 import os
 
 root_dir = os.path.dirname(os.path.abspath(__file__)) + "/.."
+
+# Report param
+UTILITY_DATA_TYPE = 0
+TOKEN_DATA_TYPE = 1
 
 
 class Report:

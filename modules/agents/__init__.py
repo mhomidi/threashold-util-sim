@@ -1,16 +1,23 @@
 
 import numpy as np
-from config.config import *
+from config import config
 from utils.distribution import UtilityGenerator, UniformMeanGenerator
 
 
-CLUSTERS_NUMBER = 10
-
 class Agent:
     
-    def __init__(self, budget: int, mean_u_gen=UniformMeanGenerator()) -> None:
+    def __init__(
+                self, budget: int,
+                u_gen_type=config.U_GEN_MARKOV, 
+                mean_u_gen=UniformMeanGenerator(),
+                application=None
+                ) -> None:
         self.budget = budget
-        self.utils = np.random.rand(CLUSTERS_NUM).tolist()
+        self.u_get_type = u_gen_type
+        if u_gen_type is config.U_GEN_MARKOV and application is None:
+            raise Exception()
+        self.application = application
+        self.utils = np.random.rand(config.CLUSTERS_NUM).tolist()
         self.round_util = 0
         self.utility_generator = UtilityGenerator(mean_u_gen)
 
@@ -23,7 +30,7 @@ class Agent:
     def get_preferences(self, threshold: float) -> list:
         us = self.utils.copy()
         pref = []
-        l = CLUSTERS_NUMBER - 1
+        l = config.CLUSTERS_NUM - 1
         while l >= 0:
             m = max(us)
             if m >= threshold:

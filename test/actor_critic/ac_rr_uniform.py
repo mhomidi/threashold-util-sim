@@ -6,11 +6,11 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 
-from config.config import *
+from config import config
 from modules.agents.actor_critic_agent import ActorCriticAgent
 from modules.scheduler.round_robin import RoundRobinScheduler
 from modules.dispatcher import Dispatcher
-from utils.report import Report
+from utils.report import *
 from utils import distribution
 
 
@@ -20,7 +20,11 @@ if __name__ == "__main__":
     agents = list()
 
     for i in range(n):
-        agents.append(ActorCriticAgent(10, distribution.UniformMeanGenerator()))
+        agents.append(ActorCriticAgent(
+            budget=10, 
+            u_gen_type=config.U_GEN_DISTRIBUTION,
+            mean_u_gen=distribution.UniformMeanGenerator()
+            ))
         reporter.add_agent(agents[i])
 
     sched = RoundRobinScheduler(n)
@@ -31,7 +35,7 @@ if __name__ == "__main__":
 
     dp.set_scheduler(sched)
 
-    for episode in range(int(AC_EPISODES)):
+    for episode in range(int(config.AC_EPISODES)):
         prefs = list()
 
         for i in range(n):

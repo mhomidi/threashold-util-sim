@@ -2,16 +2,15 @@
 
 import os
 import sys
-import getopt
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 
-from config.config import *
+from config import config
 from modules.agents.actor_critic_agent import ActorCriticAgent
 from modules.scheduler.most_token_first import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
-from utils.report import Report
+from utils.report import *
 from utils import distribution
 
 
@@ -21,7 +20,11 @@ if __name__ == "__main__":
     agents = list()
 
     for i in range(n):
-        agents.append(ActorCriticAgent(10, distribution.PoissonMeanGenerator()))
+        agents.append(ActorCriticAgent(
+            budget=10, 
+            u_gen_type=config.U_GEN_DISTRIBUTION,
+            mean_u_gen=distribution.PoissonMeanGenerator()
+            ))
         reporter.add_agent(agents[i])
 
     sched = MostTokenFirstScheduler()
@@ -32,7 +35,7 @@ if __name__ == "__main__":
 
     dp.set_scheduler(sched)
 
-    for episode in range(int(AC_EPISODES)):
+    for episode in range(int(config.AC_EPISODES)):
         reporter.generate_tokens_row()
         prefs = list()
 

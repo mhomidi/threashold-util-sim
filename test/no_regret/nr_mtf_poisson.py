@@ -16,7 +16,12 @@ if __name__ == "__main__":
     agents = list()
 
     for i in range(n):
-        agents.append(NoRegretAgent(10, n, distribution.PoissonMeanGenerator()))
+        agents.append(NoRegretAgent(
+            budget=10,
+            n=n,
+            u_gen_type=config.U_GEN_DISTRIBUTION,
+            mean_u_gen=distribution.PoissonMeanGenerator()
+            ))
         reporter.add_agent(agents[i])
 
     sched = MostTokenFirstScheduler()
