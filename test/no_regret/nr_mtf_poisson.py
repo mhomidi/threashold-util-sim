@@ -8,6 +8,7 @@ from modules.dispatcher import Dispatcher
 from utils import distribution
 from utils.report import NRAgentReporter, UTILITY_DATA_TYPE, TOKEN_DATA_TYPE
 from config import config
+from utils import constant
 
 
 if __name__ == "__main__":
@@ -19,7 +20,7 @@ if __name__ == "__main__":
         agents.append(NoRegretAgent(
             budget=10,
             n=n,
-            u_gen_type=config.U_GEN_DISTRIBUTION,
+            u_gen_type=constant.U_GEN_DISTRIBUTION,
             mean_u_gen=distribution.PoissonMeanGenerator()
             ))
         reporter.add_agent(agents[i])

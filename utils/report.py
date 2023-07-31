@@ -31,6 +31,7 @@ class Report:
     def generate_utilities_row(self):
         utilities = []
         for agent in self.agents:
+            agent: Agent
             utilities.append(agent.get_round_utility())
         self.utilities.append(utilities)
 

@@ -5,15 +5,19 @@ import random
 
 class State:
 
-    def __init__(self, name: str, val) -> None:
+    def __init__(self, name: str, val, prob: float) -> None:
         self.name = name
         self.val = val
+        self.prob = prob
 
     def get_val(self) -> float:
         return self.val
 
     def set_val(self, val: float) -> None:
         self.val = val
+
+    def get_prob(self):
+        return self.prob
 
 
 class MarkovChain:

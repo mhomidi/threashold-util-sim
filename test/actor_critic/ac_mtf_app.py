@@ -11,8 +11,10 @@ from modules.agents.actor_critic_agent import ActorCriticAgent
 from modules.scheduler.most_token_first import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
 from utils.report import *
-from utils import distribution
+from modules.markov import application
 from utils import constant
+
+
 
 if __name__ == "__main__":
     n = int(sys.argv[1])
@@ -20,10 +22,14 @@ if __name__ == "__main__":
     agents = list()
 
     for i in range(n):
+        agent_config_json = os.path.dirname(os.path.abspath(__file__)) + "/../json/agents/a" + str(i) + "_conf.json"
+        app = application.Application()
+        app.init_from_json(json_file=agent_config_json)
+
         agents.append(ActorCriticAgent(
             budget=10, 
-            u_gen_type=constant.U_GEN_DISTRIBUTION,
-            mean_u_gen=distribution.PoissonMeanGenerator()
+            u_gen_type=constant.U_GEN_MARKOV,
+            application=app
             ))
         reporter.add_agent(agents[i])
 
@@ -52,11 +58,11 @@ if __name__ == "__main__":
 
         sched.dist_tokens()
         dp.update_budgets(sched.get_new_budgets())
-        reporter.generate_utilities_row()
 
         for i in range(n):
-            agents[i].train()
             agents[i].update_utils()
+            agents[i].train()
+        reporter.generate_utilities_row()
         if episode % 500 == 0:
             print("episode {e} Done".format(e=episode))
     

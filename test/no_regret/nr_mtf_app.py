@@ -7,26 +7,33 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 
 from config import config
-from modules.agents.actor_critic_agent import ActorCriticAgent
+from modules.agents.no_regret_policy_agent import NoRegretWithPolicyAgent
 from modules.scheduler.most_token_first import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
 from utils.report import *
-from utils import distribution
+from modules.markov import application
 from utils import constant
+
+
 
 if __name__ == "__main__":
     n = int(sys.argv[1])
-    reporter = Report()
+    reporter = NRAgentReporter()
     agents = list()
 
     for i in range(n):
-        agents.append(ActorCriticAgent(
+        agent_config_json = os.path.dirname(os.path.abspath(__file__)) + "/../json/agents/a" + str(i) + "_conf.json"
+        app = application.Application()
+        app.init_from_json(json_file=agent_config_json)
+
+        agents.append(NoRegretWithPolicyAgent(
             budget=10, 
-            u_gen_type=constant.U_GEN_DISTRIBUTION,
-            mean_u_gen=distribution.PoissonMeanGenerator()
+            n=n,
+            u_gen_type=constant.U_GEN_MARKOV,
+            application=app
             ))
         reporter.add_agent(agents[i])
-
+    
     sched = MostTokenFirstScheduler()
     dp = Dispatcher()
 
@@ -35,7 +42,7 @@ if __name__ == "__main__":
 
     dp.set_scheduler(sched)
 
-    for episode in range(int(config.AC_EPISODES)):
+    for episode in range(int(config.NR_ROUNDS)):
         reporter.generate_tokens_row()
         prefs = list()
 
@@ -62,4 +69,5 @@ if __name__ == "__main__":
     
     reporter.write_data(UTILITY_DATA_TYPE)
     reporter.write_data(TOKEN_DATA_TYPE)
-        
+    # for i in range(n):
+    #     reporter.write_weights(agents[i])

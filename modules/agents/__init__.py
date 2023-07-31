@@ -1,22 +1,24 @@
 
 import numpy as np
 from config import config
+from utils import constant
 from utils.distribution import UtilityGenerator, UniformMeanGenerator
+from modules.markov.application import Application
 
 
 class Agent:
     
     def __init__(
                 self, budget: int,
-                u_gen_type=config.U_GEN_MARKOV, 
+                u_gen_type=constant.U_GEN_MARKOV, 
                 mean_u_gen=UniformMeanGenerator(),
                 application=None
                 ) -> None:
         self.budget = budget
         self.u_get_type = u_gen_type
-        if u_gen_type is config.U_GEN_MARKOV and application is None:
+        if u_gen_type is constant.U_GEN_MARKOV and application is None:
             raise Exception()
-        self.application = application
+        self.application: Application = application
         self.utils = np.random.rand(config.CLUSTERS_NUM).tolist()
         self.round_util = 0
         self.utility_generator = UtilityGenerator(mean_u_gen)
@@ -61,7 +63,11 @@ class Agent:
         self.assignment = assignment
 
     def update_utils(self):
-        self.utils = self.utility_generator.get_utilities()
+        if self.u_get_type is constant.U_GEN_DISTRIBUTION:
+            self.utils = self.utility_generator.get_utilities()
+        elif self.u_get_type is constant.U_GEN_MARKOV:
+            self.application.go_next_state()
+            self.utils = self.application.get_curr_state().get_val()
 
     def get_round_utility(self):
         util = 0.0

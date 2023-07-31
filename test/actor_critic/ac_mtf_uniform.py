@@ -12,6 +12,7 @@ from modules.scheduler.most_token_first import MostTokenFirstScheduler
 from modules.dispatcher import Dispatcher
 from utils.report import *
 from utils import distribution
+from utils import constant
 
 
 if __name__ == "__main__":
@@ -22,7 +23,7 @@ if __name__ == "__main__":
     for i in range(n):
         agents.append(ActorCriticAgent(
             budget=10, 
-            u_gen_type=config.U_GEN_DISTRIBUTION,
+            u_gen_type=constant.U_GEN_DISTRIBUTION,
             mean_u_gen=distribution.UniformMeanGenerator()
             ))
         reporter.add_agent(agents[i])
