@@ -1,7 +1,6 @@
 
 
 from modules.scheduler import Scheduler
-# from src.agents.no_reg_agent import NoRegretAgent
 from modules.agents import Agent
 import copy
 
@@ -24,8 +23,6 @@ class Dispatcher:
     def dispatch_report(self):
         if not self.is_report_new():
             return
-        for agent in self.agents:
-            agent.set_report(copy.deepcopy(self.report))
         self.sched.set_report(copy.deepcopy(self.report))
     
     def is_report_new(self):

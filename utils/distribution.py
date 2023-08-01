@@ -2,67 +2,54 @@
 import numpy as np
 from config import config
 
-class MeanGenerator:
+class Generator:
 
-    def generate_mean(self):
+    def generate(self) -> float:
         raise NotImplementedError()
     
-    def get_mean_length(self) -> float:
-        self.mean = self.generate_mean()
-        if self.mean >= 1. or self.mean < 0:
-            raise Exception()
-        random_lenght = np.random.random() * 0.5
-        self.length = min(1. - self.mean, self.mean, random_lenght)
-        return self.mean, self.length
     
+class UniformGenerator(Generator):
     
-class UniformMeanGenerator(MeanGenerator):
+    def generate(self) -> float:
+        return np.random.randint(0, config.UTILITY_INTERVAL_NUM) / config.UTILITY_INTERVAL_NUM
 
-    def generate_mean(self):
-        return np.random.random()
-    
 
-class GeometricMeanGenerator(MeanGenerator):
+class GeometricGenerator(Generator):
 
-    def __init__(self, p=0.5, maximum=config.DIST_SAMPLE) -> None:
-        self.p = p
-        self.maximum = maximum
+    def __init__(self, p=0.5) -> None:
         super().__init__()
+        self.p = p
 
-    def generate_mean(self) -> float:
+    def generate(self) -> float:
         rand_num = 0.
         while True:
             rand_num = np.random.geometric(self.p)
-            if rand_num < self.maximum:
+            if rand_num < config.UTILITY_INTERVAL_NUM:
                 break
-        return rand_num / self.maximum
+        return rand_num / config.UTILITY_INTERVAL_NUM
     
-class PoissonMeanGenerator(MeanGenerator):
+class PoissonGenerator(Generator):
 
-    def __init__(self, lam=3, maximum=config.DIST_SAMPLE) -> None:
+    def __init__(self, lam=3) -> None:
         self.lam = lam
-        self.maximum = maximum
         super().__init__()
 
-    def generate_mean(self):
+    def generate(self) -> float:
         rand_num = 0.
         while True:
             rand_num = np.random.poisson(self.lam)
-            if rand_num < self.maximum and rand_num > 0:
+            if rand_num < config.UTILITY_INTERVAL_NUM:
                 break
-        return rand_num / self.maximum
+        return rand_num / config.UTILITY_INTERVAL_NUM
 
 
 class UtilityGenerator:
 
-    def __init__(self, mean_gen: MeanGenerator) -> None:
-        self.mean_gen = mean_gen
+    def __init__(self, generator: Generator) -> None:
+        self.generator = generator
 
-    def get_utilities(self) -> list():
-        self.mean, self.length = self.mean_gen.get_mean_length()
-        utils = np.random.uniform(
-            low=(self.mean - self.length/2),
-            high=(self.mean + self.length/2),
-            size=config.CLUSTERS_NUM
-            )
-        return utils.tolist()
+    def generate_utilities(self) -> list():
+        utils = []
+        for _ in range(config.CLUSTERS_NUM):
+            utils.append(self.generator.generate())
+        return utils

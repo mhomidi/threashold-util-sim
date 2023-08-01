@@ -6,15 +6,26 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 
 from modules.dispatcher import *
-from modules.agents.no_reg_agent import NoRegretAgent
+from modules.agents import Agent
+from modules.scheduler.most_token_first import MostTokenFirstScheduler
+from modules.applications.ditribution import DistributionApplication
+from modules.policies.actor_critic import ActorCriticPolicy
+from config import config
+
 
 import unittest
 
 class TestDispatcher(unittest.TestCase):
 
     def test_add_agent(self):
-        a1 = NoRegretAgent()
-        a2 = NoRegretAgent()
+        app1 = DistributionApplication()
+        policy1 = ActorCriticPolicy(config.BUDGET)
+        a1 = Agent(config.BUDGET, app1, policy1)
+
+        app2 = DistributionApplication()
+        policy2 = ActorCriticPolicy(config.BUDGET)
+        a2 = Agent(config.BUDGET, app2, policy2)
+
         dp = Dispatcher()
         sched = MostTokenFirstScheduler()
         dp.set_scheduler(sched)
@@ -26,16 +37,21 @@ class TestDispatcher(unittest.TestCase):
         assert(len(dp.agents) == 2)
 
     def test_set_bid(self):
-        agent1 = NoRegretAgent()
-        agent2 = NoRegretAgent()
+        app1 = DistributionApplication()
+        policy1 = ActorCriticPolicy(config.BUDGET)
+        agent1 = Agent(config.BUDGET, app1, policy1)
+
+        app2 = DistributionApplication()
+        policy2 = ActorCriticPolicy(config.BUDGET)
+        agent2 = Agent(config.BUDGET, app2, policy2)
         dp = Dispatcher()
         sched = MostTokenFirstScheduler()
         dp.set_scheduler(sched)
         dp.add_agent(agent1)
         dp.add_agent(agent2)
 
-        a1_pref = agent1.get_preferences(agent1.get_u_thr())
-        a2_pref = agent2.get_preferences(agent2.get_u_thr())
+        a1_pref = agent1.get_preferences()
+        a2_pref = agent2.get_preferences()
         dp.set_bid(agent1.get_id(), a1_pref)
         dp.set_bid(agent2.get_id(), a2_pref)
 
@@ -46,42 +62,50 @@ class TestDispatcher(unittest.TestCase):
         assert(report[1][1] == a2_pref)
 
     def test_dispatch_report(self):
-        agent1 = NoRegretAgent()
-        agent2 = NoRegretAgent()
+        app1 = DistributionApplication()
+        policy1 = ActorCriticPolicy(config.BUDGET)
+        agent1 = Agent(config.BUDGET, app1, policy1)
+
+        app2 = DistributionApplication()
+        policy2 = ActorCriticPolicy(config.BUDGET)
+        agent2 = Agent(config.BUDGET, app2, policy2)
+
         dp = Dispatcher()
         sched = MostTokenFirstScheduler()
         dp.set_scheduler(sched)
         dp.add_agent(agent1)
         dp.add_agent(agent2)
 
-        a1_pref = agent1.get_preferences(agent1.get_u_thr())
-        a2_pref = agent2.get_preferences(agent2.get_u_thr())
+        a1_pref = agent1.get_preferences()
+        a2_pref = agent2.get_preferences()
         dp.set_bid(agent1.get_id(), a1_pref)
         
         dp.dispatch_report()
-
-        assert(agent1.report == None)
-        assert(agent2.report == None)
+        assert(sched.report == None)
 
         dp.set_bid(agent2.get_id(), a2_pref)
 
         dp.dispatch_report()
         report = dp.get_report()
-
-        assert(agent1.report == report)
-        assert(agent2.report == report)
+        assert(sched.report == report)
 
     def test_update_budget(self):
-        agent1 = NoRegretAgent()
-        agent2 = NoRegretAgent()
+        app1 = DistributionApplication()
+        policy1 = ActorCriticPolicy(config.BUDGET)
+        agent1 = Agent(config.BUDGET, app1, policy1)
+
+        app2 = DistributionApplication()
+        policy2 = ActorCriticPolicy(config.BUDGET)
+        agent2 = Agent(config.BUDGET, app2, policy2)
+
         dp = Dispatcher()
         sched = MostTokenFirstScheduler()
         dp.set_scheduler(sched)
         dp.add_agent(agent1)
         dp.add_agent(agent2)
 
-        a1_pref = agent1.get_preferences(agent1.get_u_thr())
-        a2_pref = agent2.get_preferences(agent2.get_u_thr())
+        a1_pref = agent1.get_preferences()
+        a2_pref = agent2.get_preferences()
         dp.set_bid(agent1.get_id(), a1_pref)
         dp.set_bid(agent2.get_id(), a2_pref)
 
