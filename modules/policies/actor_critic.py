@@ -50,11 +50,13 @@ class ActorCriticPolicy(Policy):
         err = reward + config.DISCOUNT_FACTOR * next_val - self.val
 
         actor_loss = -torch.log(self.probs[self.u_thr_index]) * err.detach()
+        critic_loss = torch.square(err)
+        # loss = actor_loss + critic_loss
+
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
 
-        critic_loss = torch.square(err)
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()

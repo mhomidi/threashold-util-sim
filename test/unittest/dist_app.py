@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 import unittest
-from modules.applications.ditribution import DistributionApplication
+from modules.applications.distribution import DistributionApplication
 
 
 class TestApplication(unittest.TestCase):

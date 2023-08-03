@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 
 from modules.agents import Agent
-from modules.applications.ditribution import DistributionApplication
+from modules.applications.distribution import DistributionApplication
 from modules.policies.actor_critic import ActorCriticPolicy
 import unittest
 import numpy as np

@@ -8,5 +8,5 @@ class Policy:
     def get_u_thr(self):
         raise NotImplementedError()
 
-    def train(self):
+    def train(self, reward: float, new_state_data: list):
         raise NotImplementedError()
