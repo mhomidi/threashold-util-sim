@@ -5,7 +5,7 @@ from typing import Any
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
-from modules.scheduler.most_token_first import MostTokenFirstScheduler
+from modules.scheduler.round_robin import RoundRobinScheduler
 from modules.policies.fixed_threshold import FixedThresholdPolicy
 from modules.applications.markov import MarkovApplication
 from modules.agents import Agent
@@ -28,7 +28,7 @@ def agent_recieve_train(agent: Agent):
 
 
 def main():
-    sched = MostTokenFirstScheduler()
+    sched = RoundRobinScheduler(config.DEFAULT_NUM_AGENT)
     dp = sched.get_dispatcher()
     agents = list()
     reporter = Report()

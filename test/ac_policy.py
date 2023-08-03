@@ -36,7 +36,7 @@ def main():
     for i in range(n_agent):
         policy = ActorCriticPolicy(config.BUDGET)
         app = MarkovApplication()
-        app.init_from_json(json_file=json_path + "/json/agents/a" + str(i) + "_conf.json")
+        app.init_from_json(json_file=json_path + "/json/agents/base.json")
         agent = Agent(config.BUDGET, app, policy)
 
         a2d_q = AgentToDispatcherQueue(i)
