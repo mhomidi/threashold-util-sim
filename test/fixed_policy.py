@@ -1,6 +1,4 @@
 
-
-from collections.abc import Callable, Iterable, Mapping
 import os
 import sys
 from typing import Any
@@ -8,12 +6,12 @@ from typing import Any
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from modules.scheduler.most_token_first import MostTokenFirstScheduler
-from modules.policies.actor_critic import ActorCriticPolicy
+from modules.policies.fixed_threshold import FixedThresholdPolicy
 from modules.applications.markov import MarkovApplication
 from modules.agents import Agent
 from utils.queue import AgentToDispatcherQueue, DispatcherToAgentQueue
 from config import config
-from utils.report import Report, UTILITY_DATA_TYPE, TOKEN_DATA_TYPE
+from utils.report import *
 import threading
 
 json_path = os.path.dirname(os.path.abspath(__file__))
@@ -37,7 +35,7 @@ def main():
 
     # setting up the agents
     for i in range(n_agent):
-        policy = ActorCriticPolicy(config.BUDGET)
+        policy = FixedThresholdPolicy()
         app = MarkovApplication()
         app.init_from_json(json_file=json_path + "/json/agents/a" + str(i) + "_conf.json")
         agent = Agent(config.BUDGET, app, policy)
@@ -54,13 +52,15 @@ def main():
     for episode in range(config.AC_EPISODES):
         send_threads = list()
         for agent in agents:
-            t = threading.Thread(target=agent_send, args=(agent,))
-            t.start()
-            send_threads.append(t)
-        for t in send_threads:
-            t.join()
+            agent_send(agent)
+        #     t = threading.Thread(target=agent_send, args=(agent,))
+        #     t.start()
+        #     send_threads.append(t)
+        # for t in send_threads:
+        #     t.join()
         
         reporter.generate_tokens_row()
+        reporter.generate_token_distributions_row()
         dp.recieve_data()
         
         if dp.get_report() is None:
@@ -73,20 +73,22 @@ def main():
 
         train_threads = list()
         for agent in agents:
-            t = threading.Thread(target=agent_recieve_train, args=(agent,))
-            t.start()
-            train_threads.append(t)
+            agent_recieve_train(agent)
+        #     t = threading.Thread(target=agent_recieve_train, args=(agent,))
+        #     t.start()
+        #     train_threads.append(t)
 
-        for t in train_threads:
-            t.join()
+        # for t in train_threads:
+        #     t.join()
         
         reporter.generate_utilities_row()
         
         if episode % 500 == 499:
-            print("episode {e} done".format(e=episode))
+            print("episode {e} done".format(e=episode + 1))
 
     reporter.write_data(UTILITY_DATA_TYPE)
     reporter.write_data(TOKEN_DATA_TYPE)
+    reporter.write_data(TOKEN_DIST_TYPE)
 
 
 if __name__ == "__main__":

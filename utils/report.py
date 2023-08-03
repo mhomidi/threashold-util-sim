@@ -9,6 +9,7 @@ root_dir = os.path.dirname(os.path.abspath(__file__)) + "/.."
 # Report param
 UTILITY_DATA_TYPE = 0
 TOKEN_DATA_TYPE = 1
+TOKEN_DIST_TYPE = 2
 
 
 class Report:
@@ -17,6 +18,7 @@ class Report:
         self.utilities = list()
         self.tokens = list()
         self.agents = list()
+        self.token_dists = list()
 
     def add_agent(self, agent: Agent):
         self.agents.append(agent)
@@ -24,7 +26,15 @@ class Report:
     def generate_tokens_row(self):
         tokens = []
         for agent in self.agents:
+            agent: Agent
             tokens.append(agent.get_budget())
+        self.tokens.append(tokens)
+
+    def generate_token_distributions_row(self):
+        tokens = []
+        for agent in self.agents:
+            agent: Agent
+            tokens.append(agent.token_dist)
         self.tokens.append(tokens)
 
     def generate_utilities_row(self):
@@ -48,6 +58,9 @@ class Report:
         elif data_type == TOKEN_DATA_TYPE:
             file_name = root_dir + "/report_tokens.csv"
             data = self.tokens
+        elif data_type == TOKEN_DIST_TYPE:
+            file_name = root_dir + "/report_token_dists.csv"
+            data = self.token_dists
         else:
             raise Exception()
 

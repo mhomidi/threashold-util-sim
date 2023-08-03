@@ -11,7 +11,7 @@ class ACModel(nn.Module):
 
     def __init__(self):
         super(ACModel, self).__init__()
-        self.fc1 = nn.Linear(1 + config.CLUSTERS_NUM, 64) # +1 for budget
+        self.fc1 = nn.Linear(1 + config.CLUSTERS_NUM + config.TOKEN_DIST_SAMPLE, 64) # +1 for budget
         self.actor_fc2 = nn.Linear(64, 64)
         self.critic_fc2 = nn.Linear(64, 64)
         self.fc_v = nn.Linear(64, 1)
@@ -51,7 +51,6 @@ class ActorCriticPolicy(Policy):
 
         actor_loss = -torch.log(self.probs[self.u_thr_index]) * err.detach()
         critic_loss = torch.square(err)
-        # loss = actor_loss + critic_loss
 
         self.actor_optimizer.zero_grad()
         actor_loss.backward()

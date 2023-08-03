@@ -27,6 +27,9 @@ class Dispatcher:
     
     def set_cluster_assignments(self, assignments: list) -> None:
         self.cluster_assignments = assignments
+
+    def set_dist_token(self, dist: list) -> None:
+        self.token_dist = dist
     
     def is_report_new(self):
         for i in range(self.last_id):
@@ -46,7 +49,7 @@ class Dispatcher:
     def send_data(self) -> None:
         for id, queue in enumerate(self.out_queues):
             queue: DispatcherToAgentQueue
-            queue.put(self.budgets[id], self.cluster_assignments)
+            queue.put(self.budgets[id], self.cluster_assignments, self.token_dist)
 
     def recieve_data(self) -> None:
         for id, queue in enumerate(self.incoming_queues):

@@ -2,20 +2,18 @@
 
 from modules.scheduler import TokenBaseScheduler
 
-from config.config import *
+from config import config
 
 
 class MostTokenFirstScheduler(TokenBaseScheduler):
     def __init__(self) -> None:
-        self.last_token_rr_turn = 0
-        self.last_random_assign_rr_turn = 0
-        self.gathered_token = 0
         super(MostTokenFirstScheduler, self).__init__()
+        self.last_random_assign_rr_turn = 0
 
     def schedule(self) -> list:
-        self.cluster_assignment = [-1 for i in range(CLUSTERS_NUM)]
+        self.cluster_assignment = [-1 for i in range(config.CLUSTERS_NUM)]
         self.gathered_token = 0
-        for _ in range(CLUSTERS_NUM):
+        for _ in range(config.CLUSTERS_NUM):
             max_budget_agent_index = self.find_max_budget_agent_index()
             if max_budget_agent_index == -1:
                 self.assgin_randomly_available_clusters()
@@ -31,19 +29,7 @@ class MostTokenFirstScheduler(TokenBaseScheduler):
                 except:
                     pass
         self.dispatcher.set_cluster_assignments(self.cluster_assignment)
-        return self.cluster_assignment
-
-    def dist_tokens(self) -> None:
-        tokens = self.gathered_token
-        n = len(self.report)
-        while tokens > 0:
-            self.report[self.last_token_rr_turn % n][0] += 1
-            tokens -= 1
-            self.last_token_rr_turn += 1
-        budgets = list()
-        for row in self.report:
-            budgets.append(row[0])
-        self.dispatcher.set_budgets(budgets)
+        return self.cluster_assignment    
 
     def find_max_budget_agent_index(self) -> int:
         max_b = -1

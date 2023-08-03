@@ -59,18 +59,19 @@ class AgentToDispatcherQueue(AgentQueue):
     
 class DispatcherToAgentQueue(AgentQueue):
 
-    def put(self, budget: int, assignments: list) -> None:
+    def put(self, budget: int, assignments: list, token_distribution: list) -> None:
         data = dict()
         data["id"] = self.id
         data["budget"] = budget
         data["assignments"] = assignments
+        data["token_dist"] = token_distribution
         self.enqueue(data=data)
 
     def get(self) -> list:
         data = self.dequeue()
         if data is None:
             return None
-        return [data["id"], data["budget"], data["assignments"]]
+        return [data["id"], data["budget"], data["assignments"], data["token_dist"]]
 
 
 class SchedulerToDispatcherQueue(BaseQueue):

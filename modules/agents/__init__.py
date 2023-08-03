@@ -18,12 +18,13 @@ class Agent:
         self.policy = policy
         self.incoming_queue = None
         self.out_queue = None
+        self.token_dist = [0. for _ in range(config.TOKEN_DIST_SAMPLE)]
 
     def get_preferences(self) -> list:
         us = self.application.get_curr_state().get_utils().copy()
         self.utils = us.copy()
         us.sort()
-        data = [self.budget] + us
+        data = [self.budget] + us + self.token_dist
         threshold = self.policy.get_u_thr(data)
         us = self.utils.copy()
         pref = []
@@ -56,12 +57,13 @@ class Agent:
         data = self.incoming_queue.get()
         self.set_budget(data[1])
         self.set_assignment(data[2])
+        self.token_dist = data[3]
     
     def train_policy(self):
         reward = self.get_round_utility()
         us = self.application.get_curr_state().get_utils().copy()
         us.sort()
-        next_state_data = [self.budget] + us
+        next_state_data = [self.budget] + us + self.token_dist
         self.policy.train(reward, next_state_data)
 
 
