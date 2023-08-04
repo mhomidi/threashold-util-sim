@@ -51,12 +51,12 @@ def main():
     for episode in range(config.AC_EPISODES):
         send_threads = list()
         for agent in agents:
-            # agent_send(agent)
-            t = threading.Thread(target=agent_send, args=(agent,))
-            t.start()
-            send_threads.append(t)
-        for t in send_threads:
-            t.join()
+            agent_send(agent)
+        #     t = threading.Thread(target=agent_send, args=(agent,))
+        #     t.start()
+        #     send_threads.append(t)
+        # for t in send_threads:
+        #     t.join()
         
         reporter.generate_tokens_row()
         reporter.generate_token_distributions_row()
@@ -72,13 +72,13 @@ def main():
 
         train_threads = list()
         for agent in agents:
-            # agent_recieve_train(agent)
-            t = threading.Thread(target=agent_recieve_train, args=(agent,))
-            t.start()
-            train_threads.append(t)
+            agent_recieve_train(agent)
+        #     t = threading.Thread(target=agent_recieve_train, args=(agent,))
+        #     t.start()
+        #     train_threads.append(t)
 
-        for t in train_threads:
-            t.join()
+        # for t in train_threads:
+        #     t.join()
         
         reporter.generate_utilities_row()
         

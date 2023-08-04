@@ -11,19 +11,29 @@ class ACModel(nn.Module):
 
     def __init__(self):
         super(ACModel, self).__init__()
-        self.fc1 = nn.Linear(1 + config.CLUSTERS_NUM + config.TOKEN_DIST_SAMPLE, 64) # +1 for budget
+        # self.fc1 = nn.Linear(1 + config.CLUSTERS_NUM + config.TOKEN_DIST_SAMPLE, 64) # +1 for budget
+        self.fc1 = nn.Linear(2 * (1 + config.CLUSTERS_NUM + config.TOKEN_DIST_SAMPLE), 64) # +1 for budget
         self.actor_fc2 = nn.Linear(64, 64)
+        self.actor_fc3 = nn.Linear(64, 128)
+        self.actor_fc4 = nn.Linear(128, 64)
         self.critic_fc2 = nn.Linear(64, 64)
+        self.critic_fc3 = nn.Linear(64, 128)
+        self.critic_fc4 = nn.Linear(128, 64)
         self.fc_v = nn.Linear(64, 1)
         self.fc_pi = nn.Linear(64, config.THRESHOLDS_NUM)
 
     def forward(self, state):
+        state = torch.cat((state, torch.square(state)))
         x = torch.relu(self.fc1(state))
-        x = torch.relu(self.actor_fc2(x))
+        x = torch.tanh(self.actor_fc2(x))
+        x = torch.tanh(self.actor_fc3(x))
+        x = torch.relu(self.actor_fc4(x))
         pi = torch.softmax(self.fc_pi(x), dim=0)
 
         x = torch.relu(self.fc1(state))
-        x = torch.relu(self.critic_fc2(x))
+        x = torch.tanh(self.critic_fc2(x))
+        x = torch.tanh(self.critic_fc3(x))
+        x = torch.relu(self.critic_fc4(x))
         v: torch.float32 = self.fc_v(x)
         return pi, v
 
@@ -35,9 +45,8 @@ class ActorCriticPolicy(Policy):
         self.budget = budget
         self.prev_budget = budget
         self.ac_model = ACModel()
-        self.learning_rate = 0.001
-        self.actor_optimizer = optim.Adam(self.ac_model.parameters(), lr=self.learning_rate)
-        self.critic_optimizer = optim.Adam(self.ac_model.parameters(), lr=self.learning_rate)
+        self.actor_optimizer = optim.Adam(self.ac_model.parameters(), lr=config.ACTOR_LEARNING_RATE)
+        self.critic_optimizer = optim.Adam(self.ac_model.parameters(), lr=config.CRITIC_LEARNING_RATE)
 
     def get_u_thr(self, state_data: list):
         self.probs, self.val = self.ac_model(torch.tensor(state_data, dtype=torch.float32))

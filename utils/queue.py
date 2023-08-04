@@ -21,6 +21,12 @@ class BaseQueue:
         self.lock.release()
         return data
     
+    def is_empty(self) -> bool:
+        self.lock.acquire()
+        l = len(self.buffer)
+        self.lock.release()
+        return l == 0
+    
     def put(self):
         raise NotImplementedError()
     
@@ -72,33 +78,3 @@ class DispatcherToAgentQueue(AgentQueue):
         if data is None:
             return None
         return [data["id"], data["budget"], data["assignments"], data["token_dist"]]
-
-
-class SchedulerToDispatcherQueue(BaseQueue):
-
-    def put(self, budgets: list, assignments: list):
-        data = dict()
-        data["budgets"] = budgets
-        data["assignments"] = assignments
-        self.enqueue(data=data)
-    
-    def get(self):
-        data = self.dequeue()
-        if data is None:
-            return None
-        return [data["budgets"], data["assignments"]]
-
-
-class DispatcherToSchedulerQueue(BaseQueue):
-    
-    def put(self, report: list) -> None:
-        data = dict()
-        data["report"] = report
-        self.enqueue(data=data)
-
-    def get(self):
-        data = self.dequeue()
-        if data is None:
-            return None
-        return data["report"]
-    

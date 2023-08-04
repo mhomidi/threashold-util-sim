@@ -3,6 +3,7 @@ from config import config
 from modules.applications import Application
 from modules.policies import Policy
 from utils.queue import DispatcherToAgentQueue, AgentToDispatcherQueue
+import time
 
 
 class Agent:
@@ -91,3 +92,14 @@ class Agent:
     
     def get_cluster_utility(self, cluster_id):
         return self.utils[cluster_id]
+    
+    def start(self):
+        for episode in range(config.AC_EPISODES):
+            self.send_data()
+
+            while self.incoming_queue.is_empty():
+                time.sleep(0.001)
+            
+            self.recieve_data()
+            self.train_policy()
+            

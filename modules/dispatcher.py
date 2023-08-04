@@ -1,5 +1,6 @@
 
 from utils.queue import *
+import time
 
 
 class Dispatcher:
@@ -42,8 +43,6 @@ class Dispatcher:
         self.report_update[agent_id] = True
 
     def get_report(self) -> list:
-        if not self.is_report_new():
-            return None
         return self.report
     
     def send_data(self) -> None:
@@ -52,13 +51,20 @@ class Dispatcher:
             queue.put(self.budgets[id], self.cluster_assignments, self.token_dist)
 
     def recieve_data(self) -> None:
-        for id, queue in enumerate(self.incoming_queues):
-            queue: AgentToDispatcherQueue
-            data = queue.get()
-            id = data[0]
-            budget = data[1]
-            pref = data[2]
-            self.set_bid(id, budget, pref)
+        while not self.is_report_new():
+            time.sleep(0.0001)
+            for id, queue in enumerate(self.incoming_queues):
+                queue: AgentToDispatcherQueue
+                if queue.is_empty():
+                    continue
+                data = queue.get()
+                id = data[0]
+                budget = data[1]
+                pref = data[2]
+                self.set_bid(id, budget, pref)
+                
+        self.report_update = [False for _ in range(len(self.incoming_queues))]
+        
 
             
 

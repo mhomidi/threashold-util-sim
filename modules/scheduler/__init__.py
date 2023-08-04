@@ -13,7 +13,10 @@ class Scheduler:
 
     def schedule(self) -> list:
         raise NotImplementedError()
-        
+
+    def dist_tokens(self) -> None:
+        raise NotImplementedError()
+
     def set_report(self, report: list) -> None:
         self.report = report
 
@@ -25,6 +28,17 @@ class Scheduler:
     
     def get_cluster_assignments(self):
         return self.cluster_assignment
+    
+    def start(self):
+        for episode in range(config.AC_EPISODES):
+            self.dispatcher.recieve_data()
+
+            self.set_report(self.dispatcher.get_report())
+            self.schedule()
+            self.dist_tokens()
+            self.dispatcher.send_data()
+            if episode % 500 == 499:
+                print("episode {e} done".format(e=episode + 1))
 
 
 class TokenBaseScheduler(Scheduler):
