@@ -5,14 +5,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
 from utils.distribution import *
 import unittest
-from config import config
+import config
 
 
 class TestDistribution(unittest.TestCase):
 
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
-        self.nums = [i / float(config.UTILITY_INTERVAL_NUM) for i in range(config.UTILITY_INTERVAL_NUM)]
+        self.nums = [i / float(config.get('util_interval')) for i in range(config.get('util_interval'))]
         self.n = 100
 
     def test_uniform(self):

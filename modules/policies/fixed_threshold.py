@@ -1,7 +1,7 @@
 
 
 from modules.policies import Policy
-from config import config
+import config
 
 
 class FixedThresholdPolicy(Policy):
@@ -10,7 +10,7 @@ class FixedThresholdPolicy(Policy):
         super().__init__()
 
     def get_u_thr(self, data: list):
-        return config.FIXED_THRESHOLD
+        return config.get('fixed_threshold')
     
     def train(self, reward: float, new_state_data: list):
         pass

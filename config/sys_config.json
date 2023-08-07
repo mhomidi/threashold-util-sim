@@ -1,0 +1,13 @@
+{
+    "cluster_num": 10,
+    "budget": 10,
+    "default_agent_num": 5,
+    "threshold_num": 10,
+    "discount_factor": 0.99,
+    "episodes": 1000,
+    "util_interval": 10,
+    "token_dist_sample": 11,
+    "fixed_threshold": 0.0,
+    "actor_lr": 0.0004,
+    "critic_lr": 0.001
+}

@@ -1,5 +1,5 @@
 
-from config import config
+import config
 from modules.applications import Application
 from modules.policies import Policy
 from utils.queue import DispatcherToAgentQueue, AgentToDispatcherQueue
@@ -19,7 +19,9 @@ class Agent:
         self.policy = policy
         self.incoming_queue = None
         self.out_queue = None
-        self.token_dist = [0. for _ in range(config.TOKEN_DIST_SAMPLE)]
+        self.token_dist = [0. for _ in range(config.get('token_dist_sample'))]
+        self.utils_history = list()
+        self.budgets_history = list()
 
     def get_preferences(self) -> list:
         us = self.application.get_curr_state().get_utils().copy()
@@ -29,7 +31,7 @@ class Agent:
         threshold = self.policy.get_u_thr(data)
         us = self.utils.copy()
         pref = []
-        l = config.CLUSTERS_NUM - 1
+        l = config.get('cluster_num') - 1
         while l >= 0:
             m = max(us)
             if m >= threshold:
@@ -56,32 +58,17 @@ class Agent:
 
     def recieve_data(self):
         data = self.incoming_queue.get()
-        self.set_budget(data[1])
-        self.set_assignment(data[2])
+        self.budget = data[1]
+        self.assignment = data[2]
         self.token_dist = data[3]
     
     def train_policy(self):
         reward = self.get_round_utility()
+        self.utils_history.append(reward)
         us = self.application.get_curr_state().get_utils().copy()
         us.sort()
         next_state_data = [self.budget] + us + self.token_dist
         self.policy.train(reward, next_state_data)
-
-
-    def set_id(self, id: int) -> None:
-        self.id = id
-
-    def get_id(self) -> int:
-        return self.id
-
-    def get_budget(self) -> int:
-        return self.budget
-    
-    def set_budget(self, budget: int) -> None:
-        self.budget = budget
-
-    def set_assignment(self, assignment: list) -> None:
-        self.assignment = assignment
 
     def get_round_utility(self):
         util = 0.0
@@ -93,12 +80,12 @@ class Agent:
     def get_cluster_utility(self, cluster_id):
         return self.utils[cluster_id]
     
-    def start(self):
-        for episode in range(config.AC_EPISODES):
+    def run(self):
+        for _ in range(config.get('episodes')):
             self.send_data()
 
             while self.incoming_queue.is_empty():
-                time.sleep(0.001)
+                time.sleep(0.0001)
             
             self.recieve_data()
             self.train_policy()

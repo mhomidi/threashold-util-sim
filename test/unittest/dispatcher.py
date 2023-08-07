@@ -11,8 +11,6 @@ from modules.dispatcher import Dispatcher
 # from modules.policies.actor_critic import ActorCriticPolicy
 from utils.queue import *
 
-from config import config
-
 
 import unittest
 

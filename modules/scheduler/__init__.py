@@ -1,14 +1,14 @@
 
 
-from config import config
 from modules.dispatcher import Dispatcher
+import config
 
 
 class Scheduler:
 
     def __init__(self) -> None:
         self.report = None
-        self.cluster_assignment = [-1 for _ in range(config.CLUSTERS_NUM)]
+        self.cluster_assignment = [-1 for _ in range(config.get('cluster_num'))]
         self.dispatcher = Dispatcher()
 
     def schedule(self) -> list:
@@ -29,8 +29,8 @@ class Scheduler:
     def get_cluster_assignments(self):
         return self.cluster_assignment
     
-    def start(self):
-        for episode in range(config.AC_EPISODES):
+    def run(self):
+        for episode in range(config.get('episodes')):
             self.dispatcher.recieve_data()
 
             self.set_report(self.dispatcher.get_report())
@@ -45,7 +45,7 @@ class TokenBaseScheduler(Scheduler):
 
     def __init__(self) -> None:
         super().__init__()
-        self.token_distribution = [0. for _ in range(config.TOKEN_DIST_SAMPLE)]
+        self.token_distribution = [0. for _ in range(config.get('token_dist_sample'))]
         self.last_token_rr_turn = 0
         self.gathered_token = 0
         self.time = 1
@@ -75,20 +75,20 @@ class TokenBaseScheduler(Scheduler):
         return self.token_distribution
     
     def update_token_distribution(self, budgets: list):
-        budget_count = [0 for _ in range(config.TOKEN_DIST_SAMPLE)]
+        budget_count = [0 for _ in range(config.get('token_dist_sample'))]
         for b in budgets:
-            if int(config.BUDGET - config.TOKEN_DIST_SAMPLE) / 2 < b < int(config.BUDGET + config.TOKEN_DIST_SAMPLE / 2):
-                budget_count[b - int(config.BUDGET - config.TOKEN_DIST_SAMPLE / 2)] += 1
-            elif config.BUDGET - config.TOKEN_DIST_SAMPLE / 2 >= b:
+            if int(config.get('budget') - config.get('token_dist_sample')) / 2 < b < int(config.get('budget') + config.get('token_dist_sample') / 2):
+                budget_count[b - int(config.get('budget') - config.get('token_dist_sample') / 2)] += 1
+            elif config.get('budget') - config.get('token_dist_sample') / 2 >= b:
                 budget_count[0] += 1
-            elif config.BUDGET + config.TOKEN_DIST_SAMPLE / 2 <= b:
+            elif config.get('budget') + config.get('token_dist_sample') / 2 <= b:
                 budget_count[-1] + 1
 
         for index, count in enumerate(budget_count):
-            self.token_distribution[index] *= config.ALPHA * (1 - config.ALPHA ** (self.time - 1))
-            self.token_distribution[index] += ((1 - config.ALPHA) * count)
-            self.token_distribution[index] /= (1 - config.ALPHA ** self.time)
-            self.token_distribution[index] /= config.DEFAULT_NUM_AGENT
+            self.token_distribution[index] *= config.get('decay_factor') * (1 - config.get('decay_factor') ** (self.time - 1))
+            self.token_distribution[index] += ((1 - config.get('decay_factor')) * count)
+            self.token_distribution[index] /= (1 - config.get('decay_factor') ** self.time)
+            self.token_distribution[index] /= config.get('default_agent_num')
 
 
 

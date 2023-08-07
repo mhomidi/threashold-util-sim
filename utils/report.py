@@ -1,6 +1,7 @@
 import csv
 
 from modules.agents import Agent
+import numpy as np
 
 import os
 
@@ -24,30 +25,25 @@ class Report:
         self.agents.append(agent)
 
     def generate_tokens_row(self):
-        tokens = []
         for agent in self.agents:
             agent: Agent
-            tokens.append(agent.get_budget())
-        self.tokens.append(tokens)
+            self.tokens.append(agent.budgets_history)
 
     def generate_token_distributions_row(self):
-        tokens = []
         for agent in self.agents:
             agent: Agent
-            tokens.append(agent.token_dist)
-        self.tokens.append(tokens)
+            self.token_dists.append(agent.token_dist)
 
     def generate_utilities_row(self):
-        utilities = []
         for agent in self.agents:
             agent: Agent
-            utilities.append(agent.get_round_utility())
-        self.utilities.append(utilities)
+            self.utilities.append(agent.utils_history)
 
     def write_data(self, data_type=UTILITY_DATA_TYPE):
         field = list()
         for agent in self.agents:
-            field.append(agent.get_id())
+            agent: Agent
+            field.append(agent.id)
 
         file_name = None
         data = None
@@ -64,6 +60,7 @@ class Report:
         else:
             raise Exception()
 
+        data = np.array(data).T.tolist()
         with open(file_name, "w") as f:
             writer = csv.writer(f)
 

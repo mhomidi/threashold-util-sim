@@ -1,6 +1,6 @@
 
 import numpy as np
-from config import config
+import config
 
 class Generator:
 
@@ -11,7 +11,7 @@ class Generator:
 class UniformGenerator(Generator):
     
     def generate(self) -> float:
-        return np.random.randint(0, config.UTILITY_INTERVAL_NUM) / config.UTILITY_INTERVAL_NUM
+        return np.random.randint(0, config.get('util_interval')) / config.get('util_interval')
 
 
 class GeometricGenerator(Generator):
@@ -24,9 +24,9 @@ class GeometricGenerator(Generator):
         rand_num = 0.
         while True:
             rand_num = np.random.geometric(self.p)
-            if rand_num < config.UTILITY_INTERVAL_NUM:
+            if rand_num < config.get('util_interval'):
                 break
-        return rand_num / config.UTILITY_INTERVAL_NUM
+        return rand_num / config.get('util_interval')
     
 class PoissonGenerator(Generator):
 
@@ -38,9 +38,9 @@ class PoissonGenerator(Generator):
         rand_num = 0.
         while True:
             rand_num = np.random.poisson(self.lam)
-            if rand_num < config.UTILITY_INTERVAL_NUM:
+            if rand_num < config.get('util_interval'):
                 break
-        return rand_num / config.UTILITY_INTERVAL_NUM
+        return rand_num / config.get('util_interval')
 
 
 class UtilityGenerator:
@@ -50,6 +50,6 @@ class UtilityGenerator:
 
     def generate_utilities(self) -> list():
         utils = []
-        for _ in range(config.CLUSTERS_NUM):
+        for _ in range(config.get('cluster_num')):
             utils.append(self.generator.generate())
         return utils

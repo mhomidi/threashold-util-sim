@@ -10,25 +10,26 @@ from modules.applications.distribution import DistributionApplication
 from modules.policies.actor_critic import ActorCriticPolicy
 import unittest
 import numpy as np
-from config import config
+import config
+
 
 class TestAgent(unittest.TestCase):
     
     def test_init(self):
         app = DistributionApplication()
-        policy = ActorCriticPolicy(config.BUDGET)
-        agent = Agent(config.BUDGET, app, policy)
+        policy = ActorCriticPolicy(config.get('budget'))
+        agent = Agent(config.get('budget'), app, policy)
         assert(agent.application == app)
         assert(agent.policy == policy)
 
 
     def test_get_pref(self):
         app = DistributionApplication()
-        policy = ActorCriticPolicy(config.BUDGET)
-        agent = Agent(config.BUDGET, app, policy)
+        policy = ActorCriticPolicy(config.get('budget'))
+        agent = Agent(config.get('budget'), app, policy)
 
         pref = agent.get_preferences()
-        u_thr = policy.u_thr_index / config.THRESHOLDS_NUM
+        u_thr = policy.u_thr_index / config.get('threshold_num')
 
         for cluster_id in pref:
             assert(app.curr_state.get_utils()[cluster_id] >= u_thr)
@@ -36,18 +37,18 @@ class TestAgent(unittest.TestCase):
 
     def test_get_utility(self):
         app = DistributionApplication()
-        policy = ActorCriticPolicy(config.BUDGET)
-        agent = Agent(config.BUDGET, app, policy)
+        policy = ActorCriticPolicy(config.get('budget'))
+        agent = Agent(config.get('budget'), app, policy)
         agent.set_id(0)
         agent.get_preferences()
 
-        assignment = np.random.randint(0, 3, config.CLUSTERS_NUM).tolist()
+        assignment = np.random.randint(0, 3, config.get('cluster_num')).tolist()
         u = 0.
         for cid, id in enumerate(assignment):
-            if id == agent.get_id():
+            if id == agent.id:
                 u += agent.get_cluster_utility(cid)
         
-        agent.set_assignment(assignment)
+        agent.assignment = assignment
         assert(u == agent.get_round_utility())
 
 

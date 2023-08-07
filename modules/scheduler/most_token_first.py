@@ -2,7 +2,7 @@
 
 from modules.scheduler import TokenBaseScheduler
 
-from config import config
+import config as config
 
 
 class MostTokenFirstScheduler(TokenBaseScheduler):
@@ -11,9 +11,9 @@ class MostTokenFirstScheduler(TokenBaseScheduler):
         self.last_random_assign_rr_turn = 0
 
     def schedule(self) -> list:
-        self.cluster_assignment = [-1 for i in range(config.CLUSTERS_NUM)]
+        self.cluster_assignment = [-1 for i in range(config.get('cluster_num'))]
         self.gathered_token = 0
-        for _ in range(config.CLUSTERS_NUM):
+        for _ in range(config.get('cluster_num')):
             max_budget_agent_index = self.find_max_budget_agent_index()
             if max_budget_agent_index == -1:
                 self.assgin_randomly_available_clusters()
