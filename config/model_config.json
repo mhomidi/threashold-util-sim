@@ -1,12 +1,12 @@
 {
-    "l1_in": 64,
-    "actor_l2_in": 128,
+    "l1_in": 128,
+    "actor_l2_in": 64,
     "actor_l3_in": 128,
-    "actor_l4_in": 64,
-    "critic_l2_in": 128,
-    "critic_l3_in": 128,
-    "critic_l4_in": 64,
-    "decay_factor": 0.992,
-    "actor_lr": 0.0004,
-    "critic_lr": 0.001
+    "actor_l4_in": 128,
+    "critic_l2_in": 192,
+    "critic_l3_in": 192,
+    "critic_l4_in": 192,
+    "actor_lr": 0.0001,
+    "critic_lr": 0.0002,
+    "decay_factor": 0.0002
 }

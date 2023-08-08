@@ -31,6 +31,7 @@ def main():
     dp = sched.get_dispatcher()
     agents = list()
     threads = list()
+    reporter = Report()
 
     # setting up the agents
     for i in range(n_agent):
@@ -38,6 +39,7 @@ def main():
         app = MarkovApplication()
         app.init_from_json(json_file=json_path + "/json/agents/base.json")
         agent = Agent(config.get('budget'), app, policy)
+        reporter.add_agent(agent)
 
         a2d_q = AgentToDispatcherQueue(i)
         d2a_q = DispatcherToAgentQueue(i)
@@ -56,6 +58,12 @@ def main():
     for t in threads:
         t: threading.Thread
         t.join()
+
+    reporter.generate_tokens_row()
+    reporter.generate_utilities_row()
+    reporter.write_data(UTILITY_DATA_TYPE)
+    reporter.write_data(TOKEN_DATA_TYPE)
+    
 
 
 if __name__ == "__main__":
