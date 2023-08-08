@@ -4,6 +4,7 @@ from modules.applications import Application
 from modules.policies import Policy
 from utils.queue import DispatcherToAgentQueue, AgentToDispatcherQueue
 import time
+import numpy as np
 
 
 class Agent:
@@ -29,18 +30,10 @@ class Agent:
         us.sort()
         data = [self.budget] + us + self.token_dist
         threshold = self.policy.get_u_thr(data)
-        us = self.utils.copy()
-        pref = []
-        l = config.get('cluster_num') - 1
-        while l >= 0:
-            m = max(us)
-            if m >= threshold:
-                c_id = us.index(m)
-                pref.append(c_id)
-                us[c_id] = -1.
-            else:
-                break
-            l -= 1
+        us = np.array(self.utils)
+        arg_sort_us = np.apply_along_axis(lambda x: x, axis=0, arr=us).argsort()[::-1]
+
+        pref = arg_sort_us[us[arg_sort_us] > threshold].tolist()
         self.application.go_next_state()
         return pref
     
@@ -71,11 +64,8 @@ class Agent:
         self.policy.train(reward, next_state_data)
 
     def get_round_utility(self):
-        util = 0.0
-        for c_id, agent_id in enumerate(self.assignment):
-            if agent_id == self.id:
-                util += self.utils[c_id]
-        return util
+        us = np.array(self.utils)
+        return us[np.array(self.assignment) == self.id].sum()
     
     def get_cluster_utility(self, cluster_id):
         return self.utils[cluster_id]

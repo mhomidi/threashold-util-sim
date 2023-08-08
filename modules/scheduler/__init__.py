@@ -2,6 +2,7 @@
 
 from modules.dispatcher import Dispatcher
 import config
+import numpy as np
 
 
 class Scheduler:
@@ -45,7 +46,7 @@ class TokenBaseScheduler(Scheduler):
 
     def __init__(self) -> None:
         super().__init__()
-        self.token_distribution = [0. for _ in range(config.get('token_dist_sample'))]
+        self.token_distribution = np.zeros(config.get('token_dist_sample'))
         self.last_token_rr_turn = 0
         self.gathered_token = 0
         self.time = 1
@@ -62,7 +63,7 @@ class TokenBaseScheduler(Scheduler):
             budgets.append(row[0])
         self.dispatcher.set_budgets(budgets)
         self.update_token_distribution(budgets)
-        self.dispatcher.set_dist_token(self.token_distribution)
+        self.dispatcher.set_dist_token(self.token_distribution.tolist())
         self.time += 1  
 
     def get_new_budgets(self):
@@ -72,7 +73,7 @@ class TokenBaseScheduler(Scheduler):
         return new_budgets
     
     def get_token_distribution(self):
-        return self.token_distribution
+        return self.token_distribution.tolist()
     
     def update_token_distribution(self, budgets: list):
         budget_count = [0 for _ in range(config.get('token_dist_sample'))]
@@ -83,12 +84,12 @@ class TokenBaseScheduler(Scheduler):
                 budget_count[0] += 1
             elif config.get('budget') + config.get('token_dist_sample') / 2 <= b:
                 budget_count[-1] + 1
-
-        for index, count in enumerate(budget_count):
-            self.token_distribution[index] *= config.get('decay_factor') * (1 - config.get('decay_factor') ** (self.time - 1))
-            self.token_distribution[index] += ((1 - config.get('decay_factor')) * count)
-            self.token_distribution[index] /= (1 - config.get('decay_factor') ** self.time)
-            self.token_distribution[index] /= config.get('default_agent_num')
+        
+        budget_count = np.array(budget_count)
+        self.token_distribution *= config.get('decay_factor') * (1 - config.get('decay_factor') ** (self.time - 1))
+        self.token_distribution += ((1 - config.get('decay_factor')) * budget_count)
+        self.token_distribution /= (1 - config.get('decay_factor') ** self.time)
+        self.token_distribution /= config.get('default_agent_num')
 
 
 

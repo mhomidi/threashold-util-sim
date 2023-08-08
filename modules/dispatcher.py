@@ -33,10 +33,7 @@ class Dispatcher:
         self.token_dist = dist
     
     def is_report_new(self):
-        for i in range(self.last_id):
-            if not self.report_update[i]:
-                return False
-        return True
+        return sum(self.report_update) == len(self.report_update)
 
     def set_bid(self, agent_id: int, budget: int, bid: list) -> None:
         self.report[agent_id] = [budget, bid]

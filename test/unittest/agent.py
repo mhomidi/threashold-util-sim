@@ -32,14 +32,14 @@ class TestAgent(unittest.TestCase):
         u_thr = policy.u_thr_index / config.get('threshold_num')
 
         for cluster_id in pref:
-            assert(app.curr_state.get_utils()[cluster_id] >= u_thr)
+            assert(agent.utils[cluster_id] >= u_thr)
         
 
     def test_get_utility(self):
         app = DistributionApplication()
         policy = ActorCriticPolicy(config.get('budget'))
         agent = Agent(config.get('budget'), app, policy)
-        agent.set_id(0)
+        agent.id = 0
         agent.get_preferences()
 
         assignment = np.random.randint(0, 3, config.get('cluster_num')).tolist()
