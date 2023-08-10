@@ -30,7 +30,7 @@ def objective(trial: optuna.trial.Trial) -> float:
     model_conf['actor_lr'] = trial.suggest_categorical("actor_lr", [1e-4, 2e-4, 3e-4, 4e-4, 5e-4, 6e-4, 7e-4, 8e-4, 9e-4])
     model_conf['critic_lr'] = alpha * model_conf['actor_lr']
 
-    model_conf['decay_factor'] = beta * model_conf['actor_lr']
+    model_conf['decay_factor'] = 1 - beta * model_conf['actor_lr']
     with open(config_file, "w") as file:
         json.dump(model_conf, file)
 
