@@ -32,8 +32,7 @@ class Agent:
         threshold = self.policy.get_u_thr(data)
         us = np.array(self.utils)
         arg_sort_us = np.apply_along_axis(lambda x: x, axis=0, arr=us).argsort()[::-1]
-
-        pref = arg_sort_us[us[arg_sort_us] > threshold].tolist()
+        pref = arg_sort_us[us[arg_sort_us] >= threshold].tolist()
         self.application.go_next_state()
         return pref
     

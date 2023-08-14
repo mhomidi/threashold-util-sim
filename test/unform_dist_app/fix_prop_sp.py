@@ -2,11 +2,11 @@ import os
 import sys
 from typing import Any
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
-from modules.scheduler.most_token_first import MostTokenFirstScheduler
+from modules.scheduler.fix_prop_sp import FixedProportionalSpaceSlicingScheduler
 from modules.policies.fixed_threshold import FixedThresholdPolicy
-from modules.applications.markov import MarkovApplication
+from modules.applications.distribution import *
 from modules.agents import Agent
 from utils.queue import AgentToDispatcherQueue, DispatcherToAgentQueue
 from utils.report import *
@@ -27,7 +27,7 @@ def agent_recieve_train(agent: Agent):
 
 
 def main():
-    sched = MostTokenFirstScheduler()
+    sched = FixedProportionalSpaceSlicingScheduler(n_agent)
     dp = sched.get_dispatcher()
     agents = list()
     threads = list()
@@ -36,8 +36,7 @@ def main():
     # setting up the agents
     for i in range(n_agent):
         policy = FixedThresholdPolicy()
-        app = MarkovApplication()
-        app.init_from_json(json_file=json_path + "/json/agents/base.json")
+        app = DistributionApplication()
         agent = Agent(config.get('budget'), app, policy)
         reporter.add_agent(agent)
 

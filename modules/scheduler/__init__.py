@@ -11,12 +11,15 @@ class Scheduler:
         self.report = None
         self.cluster_assignment = [-1 for _ in range(config.get('cluster_num'))]
         self.dispatcher = Dispatcher()
+        self.assignment_history = list()
 
     def schedule(self) -> list:
         raise NotImplementedError()
 
     def dist_tokens(self) -> None:
-        raise NotImplementedError()
+        budgets = [config.get('budget') for _ in range(self.n)]
+        self.dispatcher.set_budgets(budgets)
+        self.dispatcher.set_dist_token([0. for _ in range(self.n)])
 
     def set_report(self, report: list) -> None:
         self.report = report
@@ -35,7 +38,7 @@ class Scheduler:
             self.dispatcher.recieve_data()
 
             self.set_report(self.dispatcher.get_report())
-            self.schedule()
+            self.assignment_history.append(self.schedule())
             self.dist_tokens()
             self.dispatcher.send_data()
             if episode % 500 == 499:

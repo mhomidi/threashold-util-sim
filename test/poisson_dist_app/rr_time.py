@@ -2,11 +2,12 @@ import os
 import sys
 from typing import Any
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 
-from modules.scheduler.most_token_first import MostTokenFirstScheduler
-from modules.policies.actor_critic import ActorCriticPolicy
-from modules.applications.markov import MarkovApplication
+from modules.scheduler.rr_time import RoundRobinTimeSlicingScheduler
+from modules.policies.fixed_threshold import FixedThresholdPolicy
+from modules.applications.distribution import *
+from utils.distribution import *
 from modules.agents import Agent
 from utils.queue import AgentToDispatcherQueue, DispatcherToAgentQueue
 from utils.report import *
@@ -27,7 +28,7 @@ def agent_recieve_train(agent: Agent):
 
 
 def main():
-    sched = MostTokenFirstScheduler()
+    sched = RoundRobinTimeSlicingScheduler(n_agent)
     dp = sched.get_dispatcher()
     agents = list()
     threads = list()
@@ -35,9 +36,8 @@ def main():
 
     # setting up the agents
     for i in range(n_agent):
-        policy = ActorCriticPolicy(config.get('budget'))
-        app = MarkovApplication()
-        app.init_from_json(json_file=json_path + "/json/agents/base.json")
+        policy = FixedThresholdPolicy()
+        app = DistributionApplication(generator=PoissonGenerator())
         agent = Agent(config.get('budget'), app, policy)
         reporter.add_agent(agent)
 
@@ -63,7 +63,6 @@ def main():
     reporter.generate_utilities_row()
     reporter.write_data(UTILITY_DATA_TYPE)
     reporter.write_data(TOKEN_DATA_TYPE)
-    
 
 
 if __name__ == "__main__":

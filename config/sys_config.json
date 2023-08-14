@@ -6,6 +6,5 @@
     "threshold_num": 10,
     "episodes": 10000,
     "util_interval": 10,
-    "token_dist_sample": 11,
-    "fixed_threshold": 0.9
+    "token_dist_sample": 11
 }

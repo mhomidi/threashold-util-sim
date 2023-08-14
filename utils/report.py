@@ -1,6 +1,7 @@
 import csv
 
 from modules.agents import Agent
+from modules.scheduler import Scheduler
 import numpy as np
 
 import os
@@ -11,6 +12,7 @@ root_dir = os.path.dirname(os.path.abspath(__file__)) + "/.."
 UTILITY_DATA_TYPE = 0
 TOKEN_DATA_TYPE = 1
 TOKEN_DIST_TYPE = 2
+ASSIGNMENT_TYPE = 3
 
 
 class Report:
@@ -20,9 +22,13 @@ class Report:
         self.tokens = list()
         self.agents = list()
         self.token_dists = list()
+        self.scheduler = None
 
     def add_agent(self, agent: Agent):
         self.agents.append(agent)
+
+    def set_scheduler(self, sched: Scheduler) -> None:
+        self.scheduler = sched
 
     def generate_tokens_row(self):
         for agent in self.agents:
@@ -57,6 +63,10 @@ class Report:
         elif data_type == TOKEN_DIST_TYPE:
             file_name = root_dir + "/report_token_dists.csv"
             data = self.token_dists
+        elif data_type == ASSIGNMENT_TYPE:
+            file_name = root_dir + "/report_assignments.csv"
+            data = self.scheduler.assignment_history
+            data = np.array(data).T.tolist()
         else:
             raise Exception()
 
