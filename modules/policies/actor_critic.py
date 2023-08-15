@@ -7,10 +7,10 @@ import torch.optim as optim
 import numpy as np
 
 
-class ACModel(nn.Module):
+class FourLayerACModel(nn.Module):
 
     def __init__(self):
-        super(ACModel, self).__init__()
+        super(FourLayerACModel, self).__init__()
         self.fc1 = nn.Linear(2 * (1 + config.get('cluster_num') + config.get('token_dist_sample')), config.get('l1_in')) # +1 for budget
         self.actor_fc2 = nn.Linear(config.get('l1_in'), config.get('actor_l2_in'))
         self.actor_fc3 = nn.Linear(config.get('actor_l2_in'), config.get('actor_l3_in'))
@@ -37,13 +37,59 @@ class ACModel(nn.Module):
         return pi, v
 
 
+
+class TwoLayerACModel(nn.Module):
+
+    def __init__(self):
+        super(TwoLayerACModel, self).__init__()
+        self.actor_fc2 = nn.Linear(2 * (1 + config.get('cluster_num') + config.get('token_dist_sample')), config.get('actor_l2_in')) # +1 for budget
+        self.actor_fc3 = nn.Linear(config.get('actor_l2_in'), config.get('actor_l3_in'))
+        self.fc_pi = nn.Linear(config.get('actor_l3_in'), config.get('threshold_num'))
+
+        self.critic_fc2 = nn.Linear(2 * (1 + config.get('cluster_num') + config.get('token_dist_sample')), config.get('critic_l2_in')) # +1 for budget
+        self.critic_fc3 = nn.Linear(config.get('critic_l2_in'), config.get('critic_l3_in'))
+        self.fc_v = nn.Linear(config.get('critic_l3_in'), 1)
+
+    def forward(self, state):
+        state = torch.cat((state, torch.square(state)))
+        x = torch.tanh(self.actor_fc2(state))
+        x = torch.tanh(self.actor_fc3(x))
+        pi = torch.softmax(self.fc_pi(x), dim=0)
+
+        x = torch.tanh(self.critic_fc2(state))
+        x = torch.tanh(self.critic_fc3(x))
+        v: torch.float32 = self.fc_v(x)
+        return pi, v
+
+
+class OneLayerACModel(nn.Module):
+
+    def __init__(self):
+        super(OneLayerACModel, self).__init__()
+        self.actor_fc2 = nn.Linear(2 * (1 + config.get('cluster_num') + config.get('token_dist_sample')), config.get('actor_l2_in')) # +1 for budget
+        self.fc_pi = nn.Linear(config.get('actor_l2_in'), config.get('threshold_num'))
+
+        self.critic_fc2 = nn.Linear(2 * (1 + config.get('cluster_num') + config.get('token_dist_sample')), config.get('critic_l2_in')) # +1 for budget
+        self.fc_v = nn.Linear(config.get('critic_l2_in'), 1)
+
+    def forward(self, state):
+        state = torch.cat((state, torch.square(state)))
+
+        x = torch.tanh(self.actor_fc2(state))
+        pi = torch.softmax(self.fc_pi(x), dim=0)
+
+        x = torch.tanh(self.critic_fc2(state))
+        v: torch.float32 = self.fc_v(x)
+        return pi, v
+
+
 class ActorCriticPolicy(Policy):
     
     def __init__(self, budget: int, ) -> None:
         super().__init__()
         self.budget = budget
         self.prev_budget = budget
-        self.ac_model = ACModel()
+        self.ac_model = OneLayerACModel()
         self.actor_optimizer = optim.Adam(self.ac_model.parameters(), lr=config.get('actor_lr'))
         self.critic_optimizer = optim.Adam(self.ac_model.parameters(), lr=config.get('critic_lr'))
 
