@@ -1,6 +1,7 @@
 
 from utils.queue import *
 import time
+import config
 
 
 class Dispatcher:
@@ -10,15 +11,18 @@ class Dispatcher:
         self.report = list()
         self.report_update = list()
         self.last_id = 0
+        self.weights = list()
 
     def connect(self,
                    incoming_queue: AgentToDispatcherQueue,
-                   out_queue: DispatcherToAgentQueue
+                   out_queue: DispatcherToAgentQueue,
+                   weight: float = 1. / config.get('default_agent_num')
                    ):
         self.incoming_queues.append(incoming_queue)
         self.out_queues.append(out_queue)
         self.report.append(None)
         self.report_update.append(False)
+        self.weights.append(weight)
         incoming_queue.set_id(self.last_id)
         out_queue.set_id(self.last_id)
         self.last_id += 1
@@ -41,6 +45,9 @@ class Dispatcher:
 
     def get_report(self) -> list:
         return self.report
+
+    def get_weights(self) -> list:
+        return self.weights
     
     def send_data(self) -> None:
         for id, queue in enumerate(self.out_queues):

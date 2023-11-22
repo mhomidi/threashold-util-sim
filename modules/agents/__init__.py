@@ -12,7 +12,8 @@ class Agent:
     def __init__(
                 self, budget: int,
                 application: Application,
-                policy: Policy 
+                policy: Policy,
+                weight: float = 1. / config.get('default_agent_num')
                 ) -> None:
         self.budget = budget
         self.application: Application = application
@@ -21,12 +22,15 @@ class Agent:
         self.incoming_queue = None
         self.out_queue = None
         self.token_dist = [0. for _ in range(config.get('token_dist_sample'))]
-        self.utils_history = list()
+        self.rewards_history = list()
         self.budgets_history = list()
+        self.utils_history = list()
+        self.weight = weight
 
     def get_preferences(self) -> list:
         us = self.application.get_curr_state().get_utils().copy()
         self.utils = us.copy()
+        self.utils_history.append(self.utils)
         us.sort()
         data = [self.budget] + us + self.token_dist
         threshold = self.policy.get_u_thr(data)
@@ -56,7 +60,7 @@ class Agent:
     
     def train_policy(self):
         reward = self.get_round_utility()
-        self.utils_history.append(reward)
+        self.rewards_history.append(reward)
         us = self.application.get_curr_state().get_utils().copy()
         us.sort()
         next_state_data = [self.budget] + us + self.token_dist

@@ -57,9 +57,12 @@ class TokenBaseScheduler(Scheduler):
     def dist_tokens(self) -> None:
         tokens = self.gathered_token
         n = len(self.report)
-        while tokens > 0:
-            self.report[self.last_token_rr_turn % n][0] += 1
-            tokens -= 1
+        weights = self.dispatcher.get_weights()
+        while tokens > config.get('token_eps'):
+            agent_idx = self.last_token_rr_turn % n
+            ret_token = min(self.gathered_token * weights[agent_idx], tokens)
+            self.report[agent_idx][0] += ret_token
+            tokens -= ret_token
             self.last_token_rr_turn += 1
         budgets = list()
         for row in self.report:
@@ -82,7 +85,8 @@ class TokenBaseScheduler(Scheduler):
         budget_count = [0 for _ in range(config.get('token_dist_sample'))]
         for b in budgets:
             if int(config.get('budget') - config.get('token_dist_sample')) / 2 < b < int(config.get('budget') + config.get('token_dist_sample') / 2):
-                budget_count[b - int(config.get('budget') - config.get('token_dist_sample') / 2)] += 1
+                idx = int(b - int(config.get('budget') - config.get('token_dist_sample') / 2))
+                budget_count[idx] += 1
             elif config.get('budget') - config.get('token_dist_sample') / 2 >= b:
                 budget_count[0] += 1
             elif config.get('budget') + config.get('token_dist_sample') / 2 <= b:
