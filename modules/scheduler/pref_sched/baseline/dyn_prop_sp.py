@@ -1,18 +1,20 @@
-from modules.scheduler import Scheduler
+from modules.scheduler.pref_sched import PrefScheduler
 import config as config
 
 
 # Should used with fixed policy 0.0
-class DynamicProportionalSpaceSlicingScheduler(Scheduler):
+class DynamicProportionalSpaceSlicingScheduler(PrefScheduler):
 
     def __init__(self, agent_n: int) -> None:
         super().__init__()
         self.n = agent_n
-        self.cluster_assignment = [i % self.n for i in range(config.get('cluster_num'))]
+        self.cluster_assignment = [
+            i % self.n for i in range(config.get('cluster_num'))]
         self.turn = 0
 
     def schedule(self) -> list:
-        self.cluster_assignment = [-1 for i in range(config.get('cluster_num'))]
+        self.cluster_assignment = [
+            -1 for i in range(config.get('cluster_num'))]
         self.gathered_token = 0
         for i in range(config.get('cluster_num')):
             max_budget_agent_index = self.turn % self.n

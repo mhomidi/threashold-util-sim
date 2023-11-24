@@ -3,8 +3,8 @@ from utils.constructors import get_policy, get_application, get_scheduler
 import config
 import threading
 from utils.report import *
-from utils.queue import AgentToDispatcherQueue, DispatcherToAgentQueue
-from modules.agents import Agent
+from utils.pipe import Pipe, Pipe
+from modules.agents import PrefAgent
 import sys
 import getopt
 import os
@@ -67,11 +67,11 @@ def main(data: dict):
         # get_application should have app, markov_json_path, p_lambda
         app = get_application(
             type=data['app'], markov_json_path=markov_json_path)
-        agent = Agent(data['tokens'], app, policy)
+        agent = PrefAgent(data['tokens'], app, policy)
         reporter.add_agent(agent)
 
-        a2d_q = AgentToDispatcherQueue(i)
-        d2a_q = DispatcherToAgentQueue(i)
+        a2d_q = Pipe(i)
+        d2a_q = Pipe(i)
 
         dp.connect(a2d_q, d2a_q, agent.weight)
         agent.connect(d2a_q, a2d_q)
