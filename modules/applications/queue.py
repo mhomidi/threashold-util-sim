@@ -25,5 +25,5 @@ class QueueApplication(Application):
     def reduce_length(self, passed_job: int):
         self.length -= passed_job
 
-    def get_speed_up(self) -> list:
+    def get_throughput(self) -> list:
         return self.speed_up

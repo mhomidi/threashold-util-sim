@@ -50,7 +50,7 @@ class QueueAgent(Agent):
 
     def send_data(self):
         data = dict()
-        data['speed_up'] = self.application.get_speed_up()
+        data['throughput'] = self.application.get_throughput()
         data['q_length'] = self.application.get_length()
         self.out_pipe.put(data=data)
 
