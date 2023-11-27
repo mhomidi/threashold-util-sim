@@ -18,4 +18,3 @@ class QueueBaseScheduler(Scheduler):
             self.dispatcher.send_data()
             if episode % 500 == 499:
                 print("episode {e} done".format(e=episode + 1))
-        raise NotImplementedError()
