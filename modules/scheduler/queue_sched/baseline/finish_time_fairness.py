@@ -12,12 +12,12 @@ class FinishTimeFairnessScheduler(QueueBaseScheduler):
         c_num = config.get('cluster_num')
         q_lengths = self.get_q_lengths()
         arrival_rate = 0.5
-        q_lengths + arrival_rate
+        q_lengths += arrival_rate
         g_ex = self.get_g_ex()
         throughputs = self.get_throughput()
         g_sh = cp.Variable((a_num, c_num), boolean=True)
         ones = np.ones(c_num)
-        constraint = [g_sh.sum(axis=0) <= ones]
+        constraint = [g_sh.sum(axis=0) == ones]
         rhos = list()
         for agent_id in range(a_num):
             throughput_ex = (throughputs[agent_id] * g_ex[agent_id]).sum()
@@ -32,7 +32,10 @@ class FinishTimeFairnessScheduler(QueueBaseScheduler):
         solver = cp.Problem(cp.Minimize(cp.maximum(*rhos)),
                             constraints=constraint)
         solver.solve(qcp=True)
-        return np.array((np.array(g_sh.value) > 0.5), dtype=int).tolist()
+        return self.get_allocation(np.array((np.array(g_sh.value) > 0.5), dtype=int)).tolist()
+
+    def get_allocation(self, one_hot_alloc: np.ndarray) -> np.ndarray:
+        return np.argmax(one_hot_alloc, axis=0)
 
     def get_q_lengths(self) -> np.ndarray:
         ls = [item['q_length'] for item in self.report]

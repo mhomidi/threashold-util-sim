@@ -19,6 +19,9 @@ class Agent:
         self.out_pipe = None
         self.assignment = list()
         self.weight = weight
+        self.rewards_history = list()
+        self.budgets_history = list()
+        self.utils_history = list()
 
     def connect(self,
                 incoming_pipe: Pipe,
@@ -69,6 +72,7 @@ class QueueAgent(Agent):
 
             self.recieve_data()
             self.application.reduce_length(self.passed_jobs)
+            self.rewards_history.append(self.application.get_length())
             self.passed_jobs = 0
             self.application.go_next_state()
 
@@ -85,9 +89,6 @@ class PrefAgent(Agent):
         self.budget = budget
         self.policy = policy
         self.token_dist = [0. for _ in range(config.get('token_dist_sample'))]
-        self.rewards_history = list()
-        self.budgets_history = list()
-        self.utils_history = list()
 
     def get_preferences(self) -> list:
         us = self.application.get_curr_state().get_utils().copy()

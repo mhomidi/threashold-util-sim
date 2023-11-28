@@ -2,6 +2,7 @@ import csv
 
 from modules.agents import PrefAgent
 from modules.scheduler.pref_sched import PrefScheduler
+from modules import agents
 import numpy as np
 
 import os
@@ -106,3 +107,14 @@ class Report:
             with open(file_name, "w") as f:
                 writer = csv.writer(f)
                 writer.writerows(csv_data)
+
+    def prepare_report(self):
+        self.generate_rewards_row()
+        self.write_data(UTILITY_DATA_TYPE)
+        self.write_data(ASSIGNMENT_TYPE)
+
+        if isinstance(self.agents[0], agents.PrefAgent):
+            self.generate_tokens_row()
+            self.generate_utils_histories()
+            self.write_data(TOKEN_DATA_TYPE)
+            self.write_multiple_data(UTILS_HISTORY)

@@ -2,6 +2,8 @@ from modules.applications.queue import QueueApplication
 from modules.agents import QueueAgent
 from utils.pipe import Pipe
 from modules.dispatcher.queue import QueueDispatcher
+from modules.scheduler.queue_sched.baseline.finish_time_fairness import FinishTimeFairnessScheduler
+import config
 
 import unittest
 import os
@@ -86,6 +88,35 @@ class QueueTest(unittest.TestCase):
 
         assert (report[1]['throughput'] == app2.get_throughput())
         assert (report[1]['q_length'] == app2.get_length())
+
+    def test_finish_time_fairness_cheduler(self):
+        sched = FinishTimeFairnessScheduler()
+        a_num = config.get('default_agent_num')
+        c_num = config.get('cluster_num')
+
+        for i in range(a_num):
+            dp = sched.get_dispatcher()
+
+            app1 = QueueApplication()
+            app1.go_next_state()
+            app1.go_next_state()
+            app1.go_next_state()
+            app1.go_next_state()
+
+            q11 = Pipe(0)
+            q12 = Pipe(0)
+            a1 = QueueAgent(app1)
+
+            dp.connect(q11, q12)
+
+            a1.connect(q12, q11)
+
+            a1.send_data()
+
+        dp.recieve_data()
+        sched.set_report(dp.get_report())
+        alloc = sched.schedule()
+        assert(len(alloc) == c_num)
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ from modules.dispatcher import Dispatcher
 from utils.pipe import Pipe
 import time
 
+
 class QueueDispatcher(Dispatcher):
 
     def set_passed_jobs(self, passed_jobs: list) -> None:
@@ -26,3 +27,4 @@ class QueueDispatcher(Dispatcher):
                 data = pipe.get()
                 if data:
                     self.update_report(data['id'], data)
+        self.report_update = [False for _ in range(len(self.incoming_pipes))]
