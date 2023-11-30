@@ -34,7 +34,7 @@ def parse_args(argv):
             print(
                 'test.py -s <scheduler> -p <policy> -a <app_type> -n <n_agnet> -t <tokens> -l <lambda> -r <thr> -g <agent>')
             sys.exit()
-        elif opt in ("-s", "--scheduler"):
+        elif opt in ("-s", "--sched"):
             data['sched'] = arg
         elif opt in ('-p', '--policy'):
             data['policy'] = arg
