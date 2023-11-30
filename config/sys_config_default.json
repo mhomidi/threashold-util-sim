@@ -1,6 +1,6 @@
 {
-    "cluster_num": 2,
-    "default_agent_num": 3,
+    "cluster_num": 10,
+    "default_agent_num": 5,
     "budget": 10,
     "discount_factor": 0.99,
     "threshold_num": 10,

@@ -15,12 +15,15 @@ class GandivaScheduler(QueueBaseScheduler):
         if self.is_first_schedule:
             self.read_weights()
             self.trade_resources()
+            self.is_first_schedule = False
+        self.allocate()
+        return self.cluster_assignment
 
     def read_weights(self):
         w_l = list()
         for data in self.report:
             w_l.append(data['weight'])
-        self.weights = np.array([[w_l[j] for i in range(config.get(
+        self.weights = np.array([[w_l[j] for _ in range(config.get(
             config.CLUSTER_NUM))] for j in range(config.get(config.AGENT_NUM))])
 
     def trade_resources(self):
@@ -74,3 +77,12 @@ class GandivaScheduler(QueueBaseScheduler):
                     s_max_index = sorted_args[::-1][idx + 1]
                 break
         return f_max_index, s_max_index, min_index
+
+    def allocate(self):
+        c_num = config.get(config.CLUSTER_NUM)
+        self.cluster_assignment.clear()
+        indices = [i for i in range(config.get(config.AGENT_NUM))]
+        for c in range(c_num):
+            cluster_ws = self.weights[:, c]
+            idx = np.random.choice(indices, p=cluster_ws)
+            self.cluster_assignment.append(idx)
