@@ -30,7 +30,7 @@ class GandivaScheduler(QueueBaseScheduler):
             while high > low:
                 while True:
                     f_max_index, s_max_index, min_index = self.get_available_indices(
-                        throughputs.copy(), 0, high)
+                        throughputs.copy(), low, high)
                     if f_max_index == min_index or f_max_index == None or min_index == None:
                         break
                     speed_up = throughputs[s_max_index][high] / \

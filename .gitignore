@@ -668,4 +668,4 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/python,virtualenv,visualstudiocode,visualstudio,linux,macos,windows
 
 *.csv
-config/config.py
+config/sys_config.json
