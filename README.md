@@ -5,7 +5,7 @@ MARS serves as a resource allocation simulator for any multi-agent system. It ha
 ## Installation
 Installation of MARS is too easy. At it is written in Python, you just need to create a virtual environment with python and install the dependencies:
 
-```
+```zsh
 git clone https://github.com/mhomidi/threashold-util-sim.git MARS
 cd MARS
 virtrualenv .env
@@ -20,12 +20,12 @@ pip install -r requirement.txt
 
 ## Test
 All test are written in `test` directory. Example for running a finish time fairness allocation you just need to run
-```
+```zsh
 python test/application/test.py --agent queue --app queue --sched ftf
 ```
 
 You can get the help of the running with:
-```
+```zsh
 python test.py [-s|--sched] <scheduler> [-p|--policy] <policy> [-a|app] <app_type> [-g|--agent] <agent>
 ```
 
