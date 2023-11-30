@@ -1,7 +1,8 @@
-from modules.scheduler import Scheduler
+from modules.scheduler.pref_sched import PrefScheduler
 import config as config
 
-class FixedAgentScheduler(Scheduler):
+
+class FixedAgentScheduler(PrefScheduler):
 
     def __init__(self, agent_n: int) -> None:
         super().__init__()

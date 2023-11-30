@@ -1,10 +1,10 @@
 import random
-from utils.constructors import get_policy, get_application, get_scheduler
+from utils.constructors import *
 import config
 import threading
 from utils.report import *
-from utils.queue import AgentToDispatcherQueue, DispatcherToAgentQueue
-from modules.agents import Agent
+from utils.pipe import Pipe, Pipe
+from modules.agents import PrefAgent
 import sys
 import getopt
 import os
@@ -27,12 +27,12 @@ def parse_args(argv):
         'tokens': int(config.get('budget')),
     }
 
-    opts, _ = getopt.getopt(argv, "h:s:p:a:n:t:l:r", [
-                            "scheduler=", "policy=", "app=", "nagent=", "tokens=", "lambda=", "thr="])
+    opts, _ = getopt.getopt(argv, "h:s:p:a:n:t:l:r:g", [
+                            "scheduler=", "policy=", "app=", "nagent=", "tokens=", "lambda=", "thr=", "agent="])
     for opt, arg in opts:
         if opt == '-h':
             print(
-                'test.py -s <scheduler> -p <policy> -a <app_type> -n <n_agnet> -t <tokens> -l <lambda> -r <thr>')
+                'test.py -s <scheduler> -p <policy> -a <app_type> -n <n_agnet> -t <tokens> -l <lambda> -r <thr> -g <agent>')
             sys.exit()
         elif opt in ("-s", "--scheduler"):
             data['sched'] = arg
@@ -48,6 +48,8 @@ def parse_args(argv):
             data['lambda'] = arg
         elif opt in ('-r', '--thr'):
             data['thr'] = arg
+        elif opt in ('-g', '--agent'):
+            data['agent'] = arg
 
     return data
 
@@ -67,11 +69,13 @@ def main(data: dict):
         # get_application should have app, markov_json_path, p_lambda
         app = get_application(
             type=data['app'], markov_json_path=markov_json_path)
-        agent = Agent(data['tokens'], app, policy)
+        agent = PrefAgent(data['tokens'], app, policy)
+        agent = get_agent(
+            type=data['agent'], budget=data['tokens'], app=app, policy=policy)
         reporter.add_agent(agent)
 
-        a2d_q = AgentToDispatcherQueue(i)
-        d2a_q = DispatcherToAgentQueue(i)
+        a2d_q = Pipe(i)
+        d2a_q = Pipe(i)
 
         dp.connect(a2d_q, d2a_q, agent.weight)
         agent.connect(d2a_q, a2d_q)
@@ -88,13 +92,7 @@ def main(data: dict):
         t: threading.Thread
         t.join()
 
-    reporter.generate_tokens_row()
-    reporter.generate_rewards_row()
-    reporter.generate_utils_histories()
-    reporter.write_data(UTILITY_DATA_TYPE)
-    reporter.write_data(TOKEN_DATA_TYPE)
-    reporter.write_data(ASSIGNMENT_TYPE)
-    reporter.write_multiple_data(UTILS_HISTORY)
+    reporter.prepare_report()
 
 
 if __name__ == "__main__":

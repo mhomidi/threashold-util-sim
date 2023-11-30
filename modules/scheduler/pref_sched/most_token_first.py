@@ -1,6 +1,6 @@
 
 
-from modules.scheduler import TokenBaseScheduler
+from modules.scheduler.pref_sched import TokenBaseScheduler
 
 import config as config
 

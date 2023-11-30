@@ -2,15 +2,16 @@
 import numpy as np
 import config
 
+
 class Generator:
 
     def generate(self) -> float:
         raise NotImplementedError()
-    
-    
+
+
 class UniformGenerator(Generator):
-    
-    def generate(self) -> float:
+
+    def generate(self) -> int:
         return np.random.randint(0, config.get('util_interval')) / config.get('util_interval')
 
 
@@ -27,7 +28,8 @@ class GeometricGenerator(Generator):
             if rand_num < config.get('util_interval'):
                 break
         return rand_num / config.get('util_interval')
-    
+
+
 class PoissonGenerator(Generator):
 
     def __init__(self, lam=3) -> None:

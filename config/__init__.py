@@ -3,12 +3,25 @@ import utils
 
 
 SYS_CONF_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sys_config.json"
-MODEL_CONF_FILE = os.path.dirname(os.path.abspath(__file__)) + "/model_config.json"
+MODEL_CONF_FILE = os.path.dirname(
+    os.path.abspath(__file__)) + "/model_config.json"
+
+CLUSTER_NUM = 'cluster_num'
+DEFAULT_BUDGET = 'budget'
+DISCOUNT_FACTOR = 'discount_factor'
+AGENT_NUM = 'default_agent_num'
+THRESHOLD_NUM = 'threshold_num'
+EPISODES = 'episodes'
+UTIL_INTERVAL = 'util_interval'
+TOKEN_DIST_SAMPLE = 'token_dist_sample'
+TOKEN_EPSILON = 'token_eps'
+
 
 init_done = False
 
 sys_data: dict = None
 model_data: dict = None
+
 
 def get_data(file_name):
     if file_name == SYS_CONF_FILE and sys_data is not None:
@@ -16,6 +29,7 @@ def get_data(file_name):
     if file_name == MODEL_CONF_FILE and model_data is not None:
         return model_data
     return utils.get_json_data_from_file(file_name)
+
 
 def get(key):
     global init_done
