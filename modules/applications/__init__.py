@@ -5,14 +5,14 @@ import random
 
 class State:
 
-    def __init__(self, name: str, val: list) -> None:
+    def __init__(self, name: str, val) -> None:
         self.name = name
         self.val = val
 
-    def get_utils(self) -> list:
+    def get_utils(self):
         return self.val
 
-    def set_val(self, val: list) -> None:
+    def set_val(self, val) -> None:
         self.val = val
 
 
