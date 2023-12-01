@@ -84,5 +84,13 @@ class GandivaScheduler(QueueBaseScheduler):
         indices = [i for i in range(config.get(config.AGENT_NUM))]
         for c in range(c_num):
             cluster_ws = self.weights[:, c]
-            idx = np.random.choice(indices, p=cluster_ws)
+            idx = self.lottery_scheduling(indices, cluster_ws)
             self.cluster_assignment.append(idx)
+
+    def lottery_scheduling(self, indices, cluster_ws):
+        return np.random.choice(indices, p=cluster_ws)
+
+
+# class Scheduler
+# class LotteryScheduler(Scheduler)
+# class StrideScheduler(Scheduler)
