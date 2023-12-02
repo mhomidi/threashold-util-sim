@@ -13,7 +13,7 @@ class TestApplication(unittest.TestCase):
    def test_go_to_next_state(self):
        app = DistributionApplication()
        utils = app.get_curr_state().get_utils()
-       app.go_next_state()
+       app.update_state()
        assert(utils != app.get_curr_state().get_utils())
 
 

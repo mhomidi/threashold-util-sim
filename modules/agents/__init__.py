@@ -15,54 +15,48 @@ class Agent:
         self.cluster_size = config.get(config.CLUSTER_NUM)
         assert(self.cluster_size == len(applications))
         self.assignments = np.zeros(self.cluster_size)
-        self.rewards = np.zeros(self.cluster_size)
-        self.utilities = np.zeros(self.cluster_size)
+        self.utility = 0
         self.assignments_history = list()
-        self.rewards_history = list()
-        self.utilities_history = list()
+        self.utility_history = list()
 
-    def run_agent(self, iteration, assignments):
+    def update_agent(self, iteration, assignments):
         self.assignments_history.append(self.assignments)
-        self.rewards_history.append(self.rewards)
-        self.utilities_history.append(self.utilities)
+        self.utility_history.append(self.utility)
 
 
 class QueueAgent(Agent):
-    def __init__(self, agent_id, applications, weight, arrival_generator, load_calculator, load_balancer):
+    def __init__(self, agent_id, applications, weight, arrival_generator,
+                 load_calculator, load_balancer):
         super().__init__(agent_id, applications, weight)
+        self.applications: QueueApplication
         self.arrival_generator = arrival_generator
-        self.queue_lengths = np.zeros(self.cluster_size)
-        self.departure_rates = np.zeros(self.cluster_size)
-        self.load = np.zeros(self.cluster_size)
-        self.load_history = list()
+        self.loads = np.zeros(self.cluster_size)
+        self.loads_history = list()
         self.load_calculator = load_calculator
         self.load_balancer = load_balancer
 
-    def run_agent(self, iteration, assignments):
-        super().run_agent(iteration, assignments)
-        self.load_history.append(self.load)
+    def update_agent(self, iteration, assignments):
+        super().update_agent(iteration, assignments)
+        self.loads_history.append(self.loads)
 
         self.assignments = assignments
-        self.rewards = self.utilities * self.assignments
-
         arrivals = self.arrival_generator.generate()
-        per_queue_arrivals = self.load_balancer.balance_load(arrivals, self.load)
+        per_queue_arrivals = self.load_balancer.balance_load(arrivals, self.loads)
+        queue_lengths = np.zeros(self.cluster_size)
+        avg_departure_rates = np.zeros(self.cluster_size)
+
+        self.utility = 0
         for i, app in enumerate(self.applications):
 
             app.set_arrival(per_queue_arrivals[i])
             app.set_assignment(self.assignments[i])
-            app.go_next_state()
+            app.update_state()
 
-            self.queue_lengths[i] = app.get_current_queue_length()
-            self.departure_rates[i] = app.get_departure_rate()
+            queue_lengths[i] = app.get_current_queue_length()
+            avg_departure_rates[i] = app.get_avg_throughput()
+            self.utility += app.get_imm_throughput()
 
-            # new_utility = app.get_utility()
-            # self.rewards[i] = self.utilities[i] - new_utility
-            # self.utilities[i] = new_utility
-            self.utilities[i] = app.get_utility()
-
-        self.load = self.load_calculator.calculate_load(self.queue_lengths, self.departure_rates)
-        return self.utilities
+        self.loads = self.load_calculator.calculate_load(queue_lengths, avg_departure_rates)
 
 
 class PrefAgent(Agent):
@@ -89,7 +83,7 @@ class PrefAgent(Agent):
         arg_sort_us = np.apply_along_axis(
             lambda x: x, axis=0, arr=us).argsort()[::-1]
         pref = arg_sort_us[us[arg_sort_us] >= threshold].tolist()
-        self.application.go_next_state()
+        self.application.update_state()
         return pref
 
     def send_data(self):

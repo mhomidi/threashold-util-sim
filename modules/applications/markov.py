@@ -11,11 +11,8 @@ class MarkovApplication(Application):
         self.transition_matrix = transition_matrix
         self.curr_state = self.utilities[initial_index]
 
-    def go_next_state(self) -> None:
-        super().go_next_state()
+    def update_state(self) -> None:
+        super().update_state()
         current_index = self.utilities.index(self.curr_state)
         trans = self.transition_matrix[current_index]
         self.curr_state = np.random.choice(self.utilities, p=trans)
-
-    def get_utility(self):
-        return self.curr_state

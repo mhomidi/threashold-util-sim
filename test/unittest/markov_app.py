@@ -20,7 +20,7 @@ class TestApplication(unittest.TestCase):
 
         assert(app.get_curr_state() is s1)
         assert(app.get_curr_state().get_utils() == [0.5,0.5,0.6,0.6])
-        app.go_next_state()
+        app.update_state()
 
         assert(app.get_curr_state() is s2 or app.get_curr_state() is s3)
 

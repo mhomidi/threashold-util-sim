@@ -20,13 +20,13 @@ class QueueTest(unittest.TestCase):
         count = 0.
         app = QueueApplication()
         count += app.get_curr_state().val[0]
-        app.go_next_state()
+        app.update_state()
         count += app.get_curr_state().val[0]
-        app.go_next_state()
+        app.update_state()
         count += app.get_curr_state().val[0]
-        app.go_next_state()
+        app.update_state()
         count += app.get_curr_state().val[0]
-        app.go_next_state()
+        app.update_state()
         count += app.get_curr_state().val[0]
         assert (app.get_length() == count)
         app.reduce_length(0.5)
@@ -38,10 +38,10 @@ class QueueTest(unittest.TestCase):
         dta = Pipe(0)
 
         app = QueueApplication()
-        app.go_next_state()
-        app.go_next_state()
-        app.go_next_state()
-        app.go_next_state()
+        app.update_state()
+        app.update_state()
+        app.update_state()
+        app.update_state()
 
         agent = QueueAgent(app)
         agent.connect(dta, atd)
@@ -52,16 +52,16 @@ class QueueTest(unittest.TestCase):
 
     def test_dispatcher(self):
         app1 = QueueApplication()
-        app1.go_next_state()
-        app1.go_next_state()
-        app1.go_next_state()
-        app1.go_next_state()
+        app1.update_state()
+        app1.update_state()
+        app1.update_state()
+        app1.update_state()
 
         app2 = QueueApplication()
-        app2.go_next_state()
-        app2.go_next_state()
-        app2.go_next_state()
-        app2.go_next_state()
+        app2.update_state()
+        app2.update_state()
+        app2.update_state()
+        app2.update_state()
 
         q11 = Pipe(0)
         q12 = Pipe(0)
@@ -98,10 +98,10 @@ class QueueTest(unittest.TestCase):
             dp = sched.get_dispatcher()
 
             app1 = QueueApplication()
-            app1.go_next_state()
-            app1.go_next_state()
-            app1.go_next_state()
-            app1.go_next_state()
+            app1.update_state()
+            app1.update_state()
+            app1.update_state()
+            app1.update_state()
 
             q11 = Pipe(0)
             q12 = Pipe(0)
