@@ -1,9 +1,5 @@
-
-
-from modules.applications import Application, State
-import utils
+from modules.applications import Application
 import numpy as np
-import random
 
 
 class MarkovApplication(Application):
@@ -16,6 +12,7 @@ class MarkovApplication(Application):
         self.curr_state = self.utilities[initial_index]
 
     def go_next_state(self) -> None:
+        super().go_next_state()
         current_index = self.utilities.index(self.curr_state)
         trans = self.transition_matrix[current_index]
         self.curr_state = np.random.choice(self.utilities, p=trans)

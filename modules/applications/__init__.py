@@ -1,40 +1,18 @@
-
 from __future__ import annotations
-import random
-
-
-class State:
-
-    def __init__(self, name: str, val) -> None:
-        self.name = name
-        self.val = val
-
-    def get_utils(self):
-        return self.val
-
-    def set_val(self, val) -> None:
-        self.val = val
 
 
 class Application:
 
     def __init__(self) -> None:
         self.states = list()
-        self.init_state = None
         self.curr_state = None
 
     def go_next_state(self) -> None:
-        raise NotImplementedError()
+        self.states.append(self.curr_state)
 
-    def get_curr_state(self) -> State:
+    def get_curr_state(self):
         return self.curr_state
 
-    def reset(self) -> None:
-        self.curr_state = self.init_state
-
-    def get_state_with_name(self, name: str) -> State:
-        for state in self.states:
-            state: State
-            if state.name == name:
-                return state
-        return None
+    # This function should be called
+    def get_utility(self):
+        raise NotImplementedError

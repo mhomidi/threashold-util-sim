@@ -1,4 +1,3 @@
-
 import config
 from modules.applications import Application
 from modules.applications.queue import QueueApplication
@@ -9,73 +8,61 @@ import numpy as np
 
 
 class Agent:
-    def __init__(
-        self,
-        application: Application,
-        weight: float = 1. / config.get('default_agent_num')
-    ) -> None:
-        self.application: Application = application
-        self.incoming_pipe = None
-        self.out_pipe = None
-        self.assignment = list()
+    def __init__(self, agent_id, applications, weight):
+        self.agent_id = agent_id
+        self.applications = applications
         self.weight = weight
+        self.cluster_size = config.get(config.CLUSTER_NUM)
+        assert(self.cluster_size == len(applications))
+        self.assignments = np.zeros(self.cluster_size)
+        self.rewards = np.zeros(self.cluster_size)
+        self.utilities = np.zeros(self.cluster_size)
+        self.assignments_history = list()
         self.rewards_history = list()
-        self.budgets_history = list()
-        self.utils_history = list()
+        self.utilities_history = list()
 
-    def connect(self,
-                incoming_pipe: Pipe,
-                out_pipe: Pipe
-                ):
-        self.incoming_pipe = incoming_pipe
-        self.out_pipe = out_pipe
-        self.id = out_pipe.get_id()
-
-    def send_data(self):
-        raise NotImplementedError()
-
-    def recieve_data(self):
-        raise NotImplementedError()
-
-    def run(self):
-        raise NotImplementedError()
+    def run_agent(self, iteration, assignments):
+        self.assignments_history.append(self.assignments)
+        self.rewards_history.append(self.rewards)
+        self.utilities_history.append(self.utilities)
 
 
 class QueueAgent(Agent):
-    def __init__(
-        self,
-        application: QueueApplication,
-        weight: float = 1. / config.get('default_agent_num')
-    ) -> None:
-        super().__init__(application, weight)
-        self.application: QueueApplication
-        self.passed_jobs: int = 0
+    def __init__(self, agent_id, applications, weight, arrival_generator, load_calculator, load_balancer):
+        super().__init__(agent_id, applications, weight)
+        self.arrival_generator = arrival_generator
+        self.queue_lengths = np.zeros(self.cluster_size)
+        self.departure_rates = np.zeros(self.cluster_size)
+        self.load = np.zeros(self.cluster_size)
+        self.load_history = list()
+        self.load_calculator = load_calculator
+        self.load_balancer = load_balancer
 
-    def send_data(self):
-        data = dict()
-        data['weight'] = self.weight
-        data['throughput'] = self.application.get_throughput()
-        data['q_length'] = self.application.get_length()
-        self.out_pipe.put(data=data)
+    def run_agent(self, iteration, assignments):
+        super().run_agent(iteration, assignments)
+        self.load_history.append(self.load)
 
-    def recieve_data(self):
-        data = self.incoming_pipe.get()
-        if data:
-            self.passed_jobs = data['passed']
-            self.assignment = data['assignments']
+        self.assignments = assignments
+        self.rewards = self.utilities * self.assignments
 
-    def run(self):
-        for _ in range(config.get('episodes')):
-            self.send_data()
+        arrivals = self.arrival_generator.generate()
+        per_queue_arrivals = self.load_balancer.balance_load(arrivals, self.load)
+        for i, app in enumerate(self.applications):
 
-            while self.incoming_pipe.is_empty():
-                time.sleep(0.0001)
+            app.set_arrival(per_queue_arrivals[i])
+            app.set_assignment(self.assignments[i])
+            app.go_next_state()
 
-            self.recieve_data()
-            self.application.reduce_length(self.passed_jobs)
-            self.rewards_history.append(self.application.get_length())
-            self.passed_jobs = 0
-            self.application.go_next_state()
+            self.queue_lengths[i] = app.get_current_queue_length()
+            self.departure_rates[i] = app.get_departure_rate()
+
+            # new_utility = app.get_utility()
+            # self.rewards[i] = self.utilities[i] - new_utility
+            # self.utilities[i] = new_utility
+            self.utilities[i] = app.get_utility()
+
+        self.load = self.load_calculator.calculate_load(self.queue_lengths, self.departure_rates)
+        return self.utilities
 
 
 class PrefAgent(Agent):
