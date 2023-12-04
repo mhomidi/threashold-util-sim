@@ -1,12 +1,30 @@
+import numpy as np
+
 
 class Policy:
 
-    def __init__(self) -> None:
-        self.state = None
-        self.prev_state = None
+    # get_demand should return preferences for GPUs
+    def get_demands(self, state):
+        raise NotImplementedError
 
-    def get_u_thr(self, data: list):
-        raise NotImplementedError()
+    def update_policy(self, old_state, action, reward, new_state):
+        raise NotImplementedError
 
-    def train(self, reward: float, new_state_data: list):
-        raise NotImplementedError()
+
+class ACPolicy(Policy):
+    def get_demands(self, state):
+        raise NotImplementedError
+
+    def update_policy(self, old_state, action, reward, new_state):
+        raise NotImplementedError
+
+
+class GandivaFairPolicy(Policy):
+    def get_demands(self, state):
+        demands = np.zeros(len(state))
+        for i, s in enumerate(state):
+            demands[i] = s > 0
+        return demands
+
+    def update_policy(self, old_state, action, reward, new_state):
+        return

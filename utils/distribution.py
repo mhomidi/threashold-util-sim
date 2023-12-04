@@ -6,7 +6,7 @@ import config
 class Generator:
 
     def generate(self) -> float:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class UniformGenerator(Generator):
