@@ -46,6 +46,10 @@ class GandivaFairAgent(Agent):
     def __init__(self, agent_id, weight, distributed_app, policy):
         super().__init__(agent_id, weight, distributed_app, policy)
         self.policy: GandivaFairPolicy
+        self.speed_up = np.sort(np.random.uniform(0., 1., self.cluster_size))
+
+    def get_speed_up(self) -> np.ndarray:
+        return self.speed_up
 
     def run_agent(self, iteration, assignments):
         self.dist_app.update_dist_app(iteration, assignments)
