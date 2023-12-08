@@ -1,11 +1,13 @@
 {
-    "cluster_num": 10,
-    "default_agent_num": 5,
+    "cluster_num": 20,
+    "total_num_agent": 10,
     "budget": 10,
     "discount_factor": 0.99,
     "threshold_num": 10,
     "episodes": 100,
     "util_interval": 10,
     "token_dist_sample": 11,
-    "token_eps": 1e-4
+    "token_eps": 1e-4,
+    "num_workers": 10,
+    "worker_num_agent": 2
 }

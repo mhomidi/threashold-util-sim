@@ -9,12 +9,14 @@ MODEL_CONF_FILE = os.path.dirname(
 CLUSTER_NUM = 'cluster_num'
 DEFAULT_BUDGET = 'budget'
 DISCOUNT_FACTOR = 'discount_factor'
-AGENT_NUM = 'default_agent_num'
+AGENT_NUM = 'total_num_agent'
 THRESHOLD_NUM = 'threshold_num'
-EPISODES = 'episodes'
+TOTAL_ITERATION = 'episodes'
 UTIL_INTERVAL = 'util_interval'
 TOKEN_DIST_SAMPLE = 'token_dist_sample'
 TOKEN_EPSILON = 'token_eps'
+WORKER_NUM = 'num_workers'
+WORKER_AGENT_NUM = "worker_num_agent"
 
 
 init_done = False

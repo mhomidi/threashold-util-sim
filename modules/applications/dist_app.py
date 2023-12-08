@@ -7,7 +7,7 @@ class DistributedApplication:
     def __init__(self, applications):
         self.applications = applications
         self.cluster_size = config.get(config.CLUSTER_NUM)
-        assert(self.cluster_size == len(applications))
+        assert (self.cluster_size == len(applications))
         self.assignments = np.zeros(self.cluster_size)
         self.utility = 0
         self.assignments_history = list()
@@ -30,7 +30,6 @@ class DistributedApplication:
 class DistQueueApp(DistributedApplication):
     def __init__(self, applications, arrival_generator, load_calculator, load_balancer):
         super().__init__(applications)
-        self.applications: QueueApplication
         self.arrival_generator = arrival_generator
         self.loads = np.zeros(self.cluster_size)
         self.loads_history = list()
@@ -45,11 +44,12 @@ class DistQueueApp(DistributedApplication):
 
         self.assignments = assignments
         arrivals = self.arrival_generator.generate()
-        per_queue_arrivals = self.load_balancer.balance_load(arrivals, self.loads)
+        per_queue_arrivals = self.load_balancer.balance_load(
+            arrivals, self.loads)
 
         self.utility = 0
         for i, app in enumerate(self.applications):
-
+            app: QueueApplication
             app.set_arrival(per_queue_arrivals[i])
             app.set_assignment(self.assignments[i])
             app.update_state()
@@ -58,4 +58,5 @@ class DistQueueApp(DistributedApplication):
             self.avg_departure_rates[i] = app.get_avg_throughput()
             self.utility += app.get_imm_throughput()
 
-        self.loads = self.load_calculator.calculate_load(self.queue_lengths, self.avg_departure_rates)
+        self.loads = self.load_calculator.calculate_load(
+            self.queue_lengths, self.avg_departure_rates)
