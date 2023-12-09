@@ -23,6 +23,7 @@ class Worker:
         for iter in range(config.get(config.TOTAL_ITERATION)):
             self.w2c_pipe.put(data)
             while self.c2w_pipe.is_empty():
+                # TODO: wait lock
                 time.sleep(0.0001)
             data = self.c2w_pipe.get()
             assignments = data['assignments']
@@ -54,6 +55,7 @@ class Coordinator:
     def recieve_demands(self):
         demands = [None for i in range(len(self.w2c_queues))]
         while not self.is_demands_new():
+            # TODO: wait lock
             time.sleep(0.0001)
             for id, pipe in enumerate(self.w2c_queues):
                 pipe: Pipe
