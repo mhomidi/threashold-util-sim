@@ -12,9 +12,9 @@ class TestApplication(unittest.TestCase):
     
    def test_go_to_next_state(self):
        app = DistributionApplication()
-       utils = app.get_curr_state().get_utils()
+       utils = app.get_state().get_utils()
        app.update_state()
-       assert(utils != app.get_curr_state().get_utils())
+       assert(utils != app.get_state().get_utils())
 
 
 if __name__ == "__main__":

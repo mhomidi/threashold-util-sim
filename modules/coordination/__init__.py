@@ -1,88 +1,63 @@
-from modules.agents import Agent
-from utils.pipe import *
-import config
-from modules.scheduler import Scheduler
-import time
 import numpy as np
 
 
 class Worker:
 
-    def __init__(self, id: int) -> None:
+    def __init__(self, agents, w2c_queue, c2w_queue):
         self.id = id
-        self.agents = list()
-        self.w2c_pipe = Pipe(self.id)
-        self.c2w_pipe = Pipe(self.id)
+        self.agents = agents
+        self.agents_len = len(self.agents)
+        self.w2c_queue = w2c_queue
+        self.c2w_queue = c2w_queue
 
-    def add_agent(self, agent):
-        self.agents.append(agent)
+    def run(self, path):
+        demands = np.zeros(self.agents_len)
 
-    def run(self):
-        data['demands'] = np.zeros(
-            (len(self.agents), config.get(config.CLUSTER_NUM)))
-        for iter in range(config.get(config.TOTAL_ITERATION)):
-            self.w2c_pipe.put(data)
-            while self.c2w_pipe.is_empty():
-                # TODO: wait lock
-                time.sleep(0.0001)
-            data = self.c2w_pipe.get()
-            assignments = data['assignments']
-            demands = [None for _ in range(len(self.agents))]
-            for index, agent in enumerate(self.agents):
-                agent: Agent
-                agent_assignment = assignments[index]
-                demands[index] = agent.run_agent(iter, agent_assignment)
-            data['demands'] = np.array(demands)
+        while True:
+            self.w2c_queue.put(demands)
+
+            info = self.c2w_queue.get()
+            if info == 'stop':
+                for agent in self.agents:
+                    agent.stop(path)
+
+            assignments, extra, iteration = info
+            for i, agent in enumerate(self.agents):
+                agent.set_extra(extra)
+                demands[i] = agent.run_agent(iteration, assignments[i])
 
 
 class Coordinator:
 
-    def __init__(self, scheduler: Scheduler) -> None:
+    def __init__(self, scheduler, num_iterations, num_agents, num_workers, w2c_queues, c2w_queues):
         self.scheduler = scheduler
-        self.update_demands = list()
-        self.w2c_queues = list()
-        self.c2w_queues = list()
-
-    def add_pipes(self, w2c_queue: Pipe, c2w_queue: Pipe):
-        self.update_demands.append(False)
-        self.w2c_queues.append(w2c_queue)
-        self.c2w_queues.append(c2w_queue)
-
-    def is_demands_new(self):
-        ud = np.array(self.update_demands, dtype=np.int8)
-        return ud.sum() == len(self.update_demands)
-
-    def recieve_demands(self):
-        demands = [None for i in range(len(self.w2c_queues))]
-        while not self.is_demands_new():
-            # TODO: wait lock
-            time.sleep(0.0001)
-            for id, pipe in enumerate(self.w2c_queues):
-                pipe: Pipe
-                if not self.demands_update[id]:
-                    if pipe.is_empty():
-                        continue
-                    data = pipe.get()
-                    if data:
-                        demands[id] = data['demands']
-                        self.demands_update[id] = True
-
-        self.demands_update = [False for _ in range(len(self.w2c_queues))]
-        return np.array(demands).reshape((config.get(config.AGENT_NUM), config.get(config.CLUSTER_NUM)))
-
-    def send_assignments(self, assignments):
-        start_point = 0
-        w_num_agent = config.get(config.WORKER_AGENT_NUM)
-        for queue in self.c2w_queues:
-            queue: Pipe
-            queue.put(
-                data={'assignments': assignments[start_point: start_point + w_num_agent]})
-            start_point += w_num_agent
+        self.w2c_queues = w2c_queues
+        self.c2w_queues = c2w_queues
+        self.num_workers = num_workers
+        self.num_agents = num_agents
+        self.num_iterations = num_iterations
 
     def run(self):
-        for iteration in range(config.get(config.TOTAL_ITERATION)):
-            demands = self.recieve_demands()
-            assignments = self.scheduler.run_scheduler(iteration, demands)
-            self.send_assignments(assignments)
-            if iteration % 500 == 499:
-                print("episode {e} done".format(e=iteration + 1))
+        demands_array = np.zeros(self.num_agents)
+        agent_ids = np.arange(0, self.num_agents)
+        workers_agent_ids = np.array_split(agent_ids, self.num_workers)
+
+        for iteration in range(self.num_iterations):
+
+            for q, ids in zip(self.w2c_queues, workers_agent_ids):
+                demands = q.get()
+                demands_array[ids] = demands
+
+            assignments, extra = self.scheduler.run_scheduler(iteration, demands_array)
+
+            if extra is None:
+                extra = np.zeros(self.num_agents)
+
+            workers_assignments = np.array_split(assignments, self.num_workers)
+            workers_extra = np.array_split(extra, self.num_workers)
+
+            for q, w_s, w_t in zip(self.c2w_queues, workers_assignments, workers_extra):
+                q.put((w_s, w_t, iteration))
+
+        for q in self.c2w_queues:
+            q.put('stop')

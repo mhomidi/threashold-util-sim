@@ -19,15 +19,15 @@ class QueueTest(unittest.TestCase):
         random.seed("test")
         count = 0.
         app = QueueApplication()
-        count += app.get_curr_state().val[0]
+        count += app.get_state().val[0]
         app.update_state()
-        count += app.get_curr_state().val[0]
+        count += app.get_state().val[0]
         app.update_state()
-        count += app.get_curr_state().val[0]
+        count += app.get_state().val[0]
         app.update_state()
-        count += app.get_curr_state().val[0]
+        count += app.get_state().val[0]
         app.update_state()
-        count += app.get_curr_state().val[0]
+        count += app.get_state().val[0]
         assert (app.get_length() == count)
         app.reduce_length(0.5)
         count -= 0.5

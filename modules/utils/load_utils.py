@@ -17,15 +17,15 @@ class RandomLoadBalancer(LoadBalancer):
 
 
 class LoadCalculator:
-    def calculate_load(self, queue_lengths, avg_departure_rates):
+    def calculate_load(self, queue_length, avg_departure_rate):
         raise NotImplementedError
 
 
-class GandivaFairLoadCalculator(LoadCalculator):
-    def calculate_load(self, queue_lengths, avg_departure_rates):
-        return queue_lengths
+class GFairLoadCalculator(LoadCalculator):
+    def calculate_load(self, queue_length, avg_departure_rate):
+        return queue_length
 
 
 class ExpectedWaitTimeLoadCalculator(LoadCalculator):
-    def calculate_load(self, queue_lengths, avg_departure_rates):
-        return queue_lengths / avg_departure_rates
+    def calculate_load(self, queue_length, avg_departure_rate):
+        return queue_length / avg_departure_rate

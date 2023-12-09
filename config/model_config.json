@@ -1,7 +1,0 @@
-{
-    "actor_l2_in": 192,
-    "critic_l2_in": 192,
-    "actor_lr": 0.0003,
-    "critic_lr": 0.0012,
-    "decay_factor": 0.9994
-}
