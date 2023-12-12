@@ -989,13 +989,14 @@
     "scheduler_types": [
         "mtf_scheduler",
         "g_fair_scheduler",
-        "themis_scheduler"
+        "themis_scheduler",
+        "thr_policy"
     ],
     "policy_types": [
         "ac_policy",
-        "thr_policy",
         "g_fair_policy",
-        "themis_policy"
+        "themis_policy",
+        "thr_policy"
     ],
     "ac_policy_config": {
         "a_h1_size": 256,
@@ -1004,8 +1005,8 @@
     },
     "num_clusters": 20,
     "num_agents": 10,
-    "num_iterations": 2,
-    "num_workers": 1,
+    "num_iterations": 10,
+    "num_workers": 3,
     "token_coefficient": 100,
     "avg_throughput_alpha": 0.01
 }

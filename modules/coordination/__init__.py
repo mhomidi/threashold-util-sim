@@ -1,10 +1,10 @@
+from multiprocessing import Queue
 import numpy as np
 
 
 class Worker:
 
-    def __init__(self, agents, num_clusters, w2c_queue, c2w_queue):
-        self.id = id
+    def __init__(self, agents, num_clusters, w2c_queue: Queue, c2w_queue: Queue):
         self.agents = agents
         self.agents_len = len(self.agents)
         self.w2c_queue = w2c_queue
@@ -21,6 +21,7 @@ class Worker:
             if info == 'stop':
                 for agent in self.agents:
                     agent.stop(path)
+                break
 
             assignments, extra, iteration = info
             for i, agent in enumerate(self.agents):
@@ -32,8 +33,8 @@ class Coordinator:
 
     def __init__(self, scheduler, num_iterations, num_agents, num_clusters, num_workers, w2c_queues, c2w_queues):
         self.scheduler = scheduler
-        self.w2c_queues = w2c_queues
-        self.c2w_queues = c2w_queues
+        self.w2c_queues: list[Queue] = w2c_queues
+        self.c2w_queues: list[Queue] = c2w_queues
         self.num_workers = num_workers
         self.num_agents = num_agents
         self.num_iterations = num_iterations
@@ -44,20 +45,13 @@ class Coordinator:
         workers_agent_ids = np.array_split(agent_ids, self.num_workers)
 
         for iteration in range(self.num_iterations):
-
-            demands_array = list()
+            demands_array = np.zeros((self.num_agents, self.num_clusters))
             for q, ids in zip(self.w2c_queues, workers_agent_ids):
                 demands: np.ndarray = q.get()
-
-                demands_array.append(demands.tolist())
-
-            demands_ndarray = np.array(demands_array).reshape(
-                (self.num_agents, self.num_clusters))
-            print(demands_ndarray.shape)
-            print(demands_ndarray)
+                demands_array[ids] = demands
 
             assignments, extra = self.scheduler.run_scheduler(
-                iteration, demands_ndarray)
+                iteration, demands_array)
 
             if extra is None:
                 extra = np.zeros(self.num_agents)

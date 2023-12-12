@@ -35,7 +35,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, threshold_in
     agent_weight = 1. / num_agents
     agent_weights = np.array([agent_weight for _ in range(num_agents)])
 
-    path = f"{folder_name}/{num_agents}_agents/{policy_type}/{app_type}_{app_sub_type}"
+    path = f"{folder_name}/logs/{num_agents}_agents/{policy_type}/{app_type}_{app_sub_type}"
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -83,7 +83,8 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, threshold_in
                 app = QueueApplication(
                     max_queue_length, depart_gen, avg_throughput_alpha, load_calculator)
                 agent_apps.append(app)
-            dist_app = DistQueueApp(agent_apps, arrival_gen, load_balancer)
+            dist_app = DistQueueApp(
+                agent_id, agent_apps, arrival_gen, load_balancer)
         # elif app_type == "markov":
         #     transition_matrix = config["markov_app_transition_matrices"][app_sub_type]
         #     app = applications.MarkovApp(transition_matrix, app_utilities, np.random.choice(app_utilities))
@@ -137,3 +138,6 @@ if __name__ == "__main__":
     main(config_file_path, args.app_type_id,
          args.app_type_sub_id, args.policy_id, -1)
     print("Done")
+
+# python test/test.py 1 0 0 --> queue, q0, AC
+# python test/test.py 1 0 1 --> queue, q0, G-fair

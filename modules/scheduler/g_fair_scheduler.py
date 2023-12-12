@@ -23,7 +23,8 @@ class GFairScheduler(Scheduler):
     def __init__(self, agent_weights, num_agents, num_clusters):
         super().__init__(agent_weights, num_agents, num_clusters)
         # self.speed_ups = np.zeros((self.num_agents, self.num_clusters))
-        self.stride_schedulers = [self.StrideScheduler(self.agent_weights) for _ in range(self.num_clusters)]
+        self.stride_schedulers = [self.StrideScheduler(
+            self.agent_weights) for _ in range(self.num_clusters)]
 
     def run_scheduler(self, iteration, demands):
         self.assignments = np.zeros((self.num_agents, self.num_clusters))

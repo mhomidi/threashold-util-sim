@@ -11,7 +11,7 @@ class MarkovApplication(Application):
         self.transition_matrix = transition_matrix
         self.state = self.utilities[initial_index]
 
-    def update_state(self) -> None:
+    def update_state(self, iteration) -> None:
         self.state_history.append(self.state)
         current_index = self.utilities.index(self.state)
         trans = self.transition_matrix[current_index]

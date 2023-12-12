@@ -17,11 +17,12 @@ class QueueApplication(Application):
         self.arrival = 0
         self.assignment = 0
         self.assignment_history = list()
-        self.avg_throughput = 1e-3
+        self.avg_throughput = 0
         self.avg_throughput_alpha = avg_throughput_alpha
         self.departure = 0
         self.load = 0
         self.loads_history = list()
+        self.state_history = list()
         self.load_calculator = load_calculator
 
     def set_arrival(self, arrival):
@@ -31,7 +32,7 @@ class QueueApplication(Application):
         self.assignment_history.append(self.assignment)
         self.assignment = assignment
 
-    def update_state(self):
+    def update_state(self, iteration):
         self.state_history.append(self.state)
         self.queue_length_history.append(self.queue_length)
         self.loads_history.append(self.load)
@@ -39,10 +40,15 @@ class QueueApplication(Application):
                              self.departure_generator.generate() * self.assignment)
         self.avg_throughput *= (1 - self.avg_throughput_alpha)
         self.avg_throughput += (self.avg_throughput_alpha * self.departure)
+        avg_throughput = self.avg_throughput + 1e-3
+        avg_throughput /= (1 - (1 -
+                                self.avg_throughput_alpha) ** (iteration + 1))
+        # print(avg_throughput)
+        # print('===============')
         self.queue_length = self.queue_length + self.arrival - self.departure
-        self.state = max(self.max_queue_length, self.queue_length)
+        self.state = min(self.max_queue_length, self.queue_length)
         self.load = self.load_calculator.calculate_load(
-            self.queue_length, self.avg_throughput)
+            self.queue_length, avg_throughput)
 
     def get_current_queue_length(self):
         return self.queue_length
@@ -56,6 +62,8 @@ class QueueApplication(Application):
     def get_load(self):
         return self.load
 
-    def stop(self, path):
-        # print all histories
-        return
+    def stop(self, path, id):
+        data = np.array([self.queue_length_history, self.assignment_history,
+                        self.state_history, self.loads_history]).T
+        np.savetxt(path + "/app_" + str(id) + '.csv',
+                   data, delimiter=',', fmt='%10.2f')

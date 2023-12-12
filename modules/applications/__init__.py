@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 
 class Application:
@@ -7,19 +8,20 @@ class Application:
         self.state_history = list()
         self.state = None
 
-    def update_state(self) -> None:
+    def update_state(self, iteration) -> None:
         raise NotImplementedError
 
     def get_state(self):
         return self.state
 
-    def stop(self, path):
+    def stop(self, path, id):
         raise NotImplementedError
 
 
 class DistributedApplication:
-    def __init__(self, applications):
-        self.applications = applications
+    def __init__(self, app_id, applications):
+        self.app_id = app_id
+        self.applications: list[Application] = applications
         self.cluster_size = len(applications)
         self.assignments = np.zeros(self.cluster_size)
         self.utility = 0
@@ -39,3 +41,12 @@ class DistributedApplication:
 
     def get_cluster_size(self):
         return self.cluster_size
+
+    def stop(self, path):
+        app_path = path + '/agent_' + str(self.app_id)
+        if not os.path.exists(app_path):
+            os.makedirs(app_path)
+        for id, app in enumerate(self.applications):
+            app.stop(app_path, id)
+        np.savetxt(app_path + '/utility.csv',
+                   self.utility_history, fmt='%d', delimiter=',')
