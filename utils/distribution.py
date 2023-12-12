@@ -1,6 +1,7 @@
 
 import numpy as np
-import config
+
+MAX_GNERATOR_NUM = 10
 
 
 class Generator:
@@ -12,7 +13,7 @@ class Generator:
 class UniformGenerator(Generator):
 
     def generate(self) -> int:
-        return np.random.randint(0, config.get('util_interval')) / config.get('util_interval')
+        return np.random.randint(0, MAX_GNERATOR_NUM)
 
 
 class GeometricGenerator(Generator):
@@ -25,9 +26,9 @@ class GeometricGenerator(Generator):
         rand_num = 0.
         while True:
             rand_num = np.random.geometric(self.p)
-            if rand_num < config.get('util_interval'):
+            if rand_num < MAX_GNERATOR_NUM:
                 break
-        return rand_num / config.get('util_interval')
+        return rand_num
 
 
 class PoissonGenerator(Generator):
@@ -40,18 +41,6 @@ class PoissonGenerator(Generator):
         rand_num = 0.
         while True:
             rand_num = np.random.poisson(self.lam)
-            if rand_num < config.get('util_interval'):
+            if rand_num < MAX_GNERATOR_NUM:
                 break
-        return rand_num / config.get('util_interval')
-
-
-class UtilityGenerator:
-
-    def __init__(self, generator: Generator) -> None:
-        self.generator = generator
-
-    def generate_utilities(self) -> list():
-        utils = []
-        for _ in range(config.get('cluster_num')):
-            utils.append(self.generator.generate())
-        return utils
+        return rand_num

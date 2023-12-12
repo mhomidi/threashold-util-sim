@@ -1,10 +1,12 @@
 from modules.applications import DistributedApplication
 from modules.applications.queue import QueueApplication
+from modules.utils.load_utils import LoadBalancer
+from utils.distribution import Generator
 import numpy as np
 
 
 class DistQueueApp(DistributedApplication):
-    def __init__(self, applications, arrival_generator, load_balancer):
+    def __init__(self, applications, arrival_generator: Generator, load_balancer: LoadBalancer):
         super().__init__(applications)
         self.arrival_generator = arrival_generator
         self.loads = np.zeros(self.cluster_size)
@@ -14,8 +16,9 @@ class DistQueueApp(DistributedApplication):
         super().update_dist_app(iteration, assignments)
 
         self.assignments = assignments
-        arrivals = self.arrival_generator.generate()
-        per_queue_arrivals = self.load_balancer.balance_load(arrivals, self.loads)
+        arrivals = self.arrival_generator.generate() * len(self.loads)
+        per_queue_arrivals = self.load_balancer.balance_load(
+            arrivals, self.loads)
 
         self.utility = 0
         for i, app in enumerate(self.applications):

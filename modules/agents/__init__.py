@@ -1,8 +1,9 @@
 import numpy as np
+from modules.applications.dist_app import DistributedApplication
 
 
 class Agent:
-    def __init__(self, agent_id, weight, distributed_app, policy):
+    def __init__(self, agent_id, weight, distributed_app: DistributedApplication, policy):
         self.cluster_size = distributed_app.get_cluster_size()
         self.agent_id = agent_id
         self.weight = weight

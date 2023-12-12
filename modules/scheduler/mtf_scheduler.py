@@ -7,7 +7,7 @@ class MTFScheduler(Scheduler):
         super().__init__(agent_weights, num_agents, num_clusters)
         self.tokens = np.zeros(self.num_agents)
         for i in range(0, self.num_agents):
-            self.tokens[i] = self.agent_weights * token_coefficient
+            self.tokens[i] = self.agent_weights[i] * token_coefficient
 
     def run_scheduler(self, iteration, demands: np.ndarray):
         assignments = np.zeros((self.num_agents, self.num_clusters))
@@ -18,7 +18,7 @@ class MTFScheduler(Scheduler):
             if tokens[max_budget_agent_index] == 0:
                 break
             preferred_cluster = np.argmax(demands[max_budget_agent_index])
-            if demands[(max_budget_agent_index, preferred_cluster)] == 0:
+            if demands[max_budget_agent_index, preferred_cluster] == 0:
                 tokens[max_budget_agent_index] = 0
                 continue
             assignments[(max_budget_agent_index, preferred_cluster)] = 1
