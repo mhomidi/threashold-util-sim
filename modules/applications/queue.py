@@ -43,8 +43,6 @@ class QueueApplication(Application):
         avg_throughput = self.avg_throughput + 1e-3
         avg_throughput /= (1 - (1 -
                                 self.avg_throughput_alpha) ** (iteration + 1))
-        # print(avg_throughput)
-        # print('===============')
         self.queue_length = self.queue_length + self.arrival - self.departure
         self.state = min(self.max_queue_length, self.queue_length)
         self.load = self.load_calculator.calculate_load(
