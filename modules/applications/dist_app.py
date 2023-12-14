@@ -17,8 +17,7 @@ class DistQueueApp(DistributedApplication):
 
         self.assignments = assignments
         arrivals = self.arrival_generator.generate() * len(self.loads)
-        per_queue_arrivals = self.load_balancer.balance_load(
-            arrivals, self.loads)
+        per_queue_arrivals = self.load_balancer.balance_load(arrivals, self.loads)
 
         self.utility = 0
         for i, app in enumerate(self.applications):

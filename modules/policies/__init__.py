@@ -9,3 +9,6 @@ class Policy:
 
     def update_policy(self, old_state, action, reward, new_state):
         raise NotImplementedError
+
+    def printable_action(self, state):
+        raise NotImplementedError

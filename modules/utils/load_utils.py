@@ -2,12 +2,14 @@ import numpy as np
 
 
 class LoadBalancer:
-    def balance_load(self, arrivals, current_loads):
+    @staticmethod
+    def balance_load(arrivals, current_loads):
         raise NotImplementedError
 
 
 class RandomLoadBalancer(LoadBalancer):
-    def balance_load(self, arrivals, current_loads):
+    @staticmethod
+    def balance_load(arrivals, current_loads):
         num_queues = len(current_loads)
         per_queue_arrivals = np.zeros(num_queues)
         for i in range(0, arrivals):
@@ -17,15 +19,18 @@ class RandomLoadBalancer(LoadBalancer):
 
 
 class LoadCalculator:
-    def calculate_load(self, queue_length, avg_departure_rate):
+    @staticmethod
+    def calculate_load(queue_length, avg_departure_rate):
         raise NotImplementedError
 
 
 class GFairLoadCalculator(LoadCalculator):
-    def calculate_load(self, queue_length, avg_departure_rate):
+    @staticmethod
+    def calculate_load(queue_length, avg_departure_rate):
         return queue_length
 
 
 class ExpectedWaitTimeLoadCalculator(LoadCalculator):
-    def calculate_load(self, queue_length, avg_departure_rate):
+    @staticmethod
+    def calculate_load(queue_length, avg_departure_rate):
         return queue_length / avg_departure_rate

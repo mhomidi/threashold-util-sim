@@ -14,13 +14,11 @@ class ACAgent(Agent):
         self.new_tokens = tokens
 
     def run_agent(self, iteration, assignments):
-        old_state = np.array(
-            self.dist_app.get_state().tolist() + self.tokens.tolist())
+        old_state = [self.dist_app.get_state(), self.tokens]
         self.dist_app.update_dist_app(iteration, assignments)
         self.tokens = self.new_tokens
         reward = self.dist_app.get_utility()
-        new_state = np.array(
-            self.dist_app.get_state().tolist() + self.tokens.tolist())
+        new_state = [self.dist_app.get_state(), self.tokens]
         self.policy.update_policy(old_state, self.demands, reward, new_state)
         self.demands = self.policy.get_demands(new_state)
         return self.demands

@@ -10,3 +10,6 @@ class GFairPolicy(Policy):
 
     def update_policy(self, old_state, action, reward, new_state):
         return
+
+    def printable_action(self, state):
+        return 0

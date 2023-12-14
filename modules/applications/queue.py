@@ -6,7 +6,8 @@ from modules.utils.load_utils import *
 class QueueApplication(Application):
 
     # We use current_state only for training NN - otherwise, current_queue_length should be used
-    def __init__(self, max_queue_length, departure_generator: Generator, avg_throughput_alpha, load_calculator: LoadCalculator) -> None:
+    def __init__(self, max_queue_length, departure_generator: Generator,
+                 avg_throughput_alpha, load_calculator: LoadCalculator):
         super().__init__()
         self.init_state = 0
         self.queue_length = 0
@@ -36,8 +37,7 @@ class QueueApplication(Application):
         self.state_history.append(self.state)
         self.queue_length_history.append(self.queue_length)
         self.loads_history.append(self.load)
-        self.departure = min(self.queue_length + self.arrival,
-                             self.departure_generator.generate() * self.assignment)
+        self.departure = min(self.queue_length + self.arrival, self.departure_generator.generate() * self.assignment)
         self.avg_throughput *= (1 - self.avg_throughput_alpha)
         self.avg_throughput += (self.avg_throughput_alpha * self.departure)
         avg_throughput = self.avg_throughput + 1e-3
