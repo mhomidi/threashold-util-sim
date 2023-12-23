@@ -975,7 +975,7 @@
         "q4": 11
     },
     "queue_app_max_queue_length": {
-        "q1": 40,
+        "q1": 100,
         "q2": 50,
         "q3": 35,
         "q4": 20
@@ -983,6 +983,7 @@
     "scheduler_types": [
         "mtf_scheduler",
         "g_fair_scheduler",
+        "rr_scheduler",
         "themis_scheduler",
         "thr_policy"
     ],
@@ -1003,24 +1004,26 @@
             "m7": 0.05
         },
         "queue": {
-            "q1": 1,
-            "q2": 1,
-            "q3": 1,
-            "q4": 1
+            "q1": 0.1,
+            "q2": 0.1,
+            "q3": 0.1,
+            "q4": 0.1
         }
     },
     "ac_policy_config": {
         "a_h1_size": 256,
         "c_h1_size": 64,
         "c_h2_size": 64,
-        "mini_batch_size": 5
+        "mini_batch_size": 1
     },
-    "num_clusters": 20,
-    "num_agents": 10,
-    "num_weight_classes": 2,
-    "weight_per_class": [2, 3],
-    "num_iterations": 10,
-    "num_workers": 3,
+    "num_clusters": 40,
+    "num_agents": 20,
+    "num_weight_classes": 1,
+    "weight_per_class": [
+        2
+    ],
+    "num_iterations": 4000,
+    "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_avg_throughput_alpha": 0.01
 }

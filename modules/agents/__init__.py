@@ -1,9 +1,10 @@
 import numpy as np
 from modules.applications.dist_app import DistributedApplication
+from modules.policies import Policy
 
 
 class Agent:
-    def __init__(self, agent_id, weight, distributed_app: DistributedApplication, policy):
+    def __init__(self, agent_id, weight, distributed_app: DistributedApplication, policy: Policy):
         self.cluster_size = distributed_app.get_cluster_size()
         self.agent_id = agent_id
         self.weight = weight
@@ -11,6 +12,8 @@ class Agent:
         self.policy = policy
         self.demands = np.zeros(self.cluster_size)
         self.assignments = np.zeros(self.cluster_size)
+        self.init_demand = None
+        self.demand_history = list()
 
     def run_agent(self, iteration, assignments):
         raise NotImplementedError
@@ -19,7 +22,11 @@ class Agent:
         return self.weight
 
     def set_extra(self, extra):
-        raise NotImplementedError
+        return
 
     def stop(self, path):
         self.dist_app.stop(path)
+        self.policy.stop(path, self.agent_id)
+
+    def get_more_data(self):
+        return None

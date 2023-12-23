@@ -1,23 +1,25 @@
+import random
 from modules.applications.queue import QueueApplication
 from modules.applications.dist_app import DistQueueApp
 from modules.utils.load_utils import *
-from utils.distribution import UniformGenerator, PoissonGenerator
-from modules.scheduler import mtf_scheduler, g_fair_scheduler
+from utils.distribution import PoissonGenerator
+from modules.scheduler import ftf_scheduler, mtf_scheduler, g_fair_scheduler, rr_scheduler
 from modules.coordination import Coordinator, Worker
-from modules.policies import ac_policy, g_fair_policy, fixed_thr_policy
-from modules.agents import ac_agent, g_fair_agent
+from modules.policies import ac_policy, ftf_policy, g_fair_policy, fixed_thr_policy
+from modules.agents import ac_agent, ftf_agent, g_fair_agent
 import time
 import json
 import numpy as np
 import argparse
 import os
+import torch
 import sys
 from multiprocessing import Process, Queue
 
 project_src_path = os.path.dirname(os.path.abspath(__file__)) + "/../"
 
 
-def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id):
+def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agents_len):
     if app_type == "queue":
         arrival_tps = config["queue_app_arrival_tps"][app_sub_type]
         departure_tps = config["queue_app_departure_tps"][app_sub_type]
@@ -28,15 +30,18 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         arrival_gen = PoissonGenerator(arrival_tps)
         for j in range(num_clusters):
             depart_gen = PoissonGenerator(departure_tps)
-            app = QueueApplication(max_queue_length, depart_gen, avg_throughput_alpha, load_calculator)
+            app = QueueApplication(
+                max_queue_length, depart_gen, avg_throughput_alpha, load_calculator)
             apps.append(app)
 
-        dist_app = DistQueueApp(agent_id, apps, arrival_gen, load_balancer)
+        dist_app = DistQueueApp(
+            agent_id, apps, arrival_gen, load_balancer, agents_len)
         return dist_app
     else:
         sys.exit("Unknown app type: {}".format(app_type))
 
-def main(config_file_name, app_type_id, app_sub_type_id, policy_id, threshold_in=-1, weights=-1):
+
+def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, weights=-1):
     start_time = time.time()
     with open(config_file_name, 'r') as f:
         config = json.load(f)
@@ -47,25 +52,34 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, threshold_in
     assert app_sub_type_id < len(config["app_sub_types"][app_type])
     app_sub_type = config["app_sub_types"][app_type][app_sub_type_id]
     policy_type = config["policy_types"][policy_id]
-    scheduler_type = config["scheduler_types"][policy_id]
+    scheduler_type = config["scheduler_types"][scheduler_id]
     app_utilities = config["app_utilities"]
     token_coefficient = config["token_coefficient"]
     num_clusters = config["num_clusters"]
     num_iterations = config["num_iterations"]
+    ac_policy_config = config['ac_policy_config']
+    a_h1_size = ac_policy_config['a_h1_size']
+    c_h1_size = ac_policy_config['c_h1_size']
+    c_h2_size = ac_policy_config['c_h2_size']
+    mini_batch_size = ac_policy_config['mini_batch_size']
+    ac_discount_factor = config['ac_discount_factor'][app_type][app_sub_type]
+    ac_a_lr = config['a_lr'][app_type][app_sub_type]
+    ac_c_lr = config['c_lr'][app_type][app_sub_type]
+    std_max = config['std_max'][app_type][app_sub_type]
 
     agent_weights = np.ones(num_agents)
-    # TODO test the implementation above
-    # TODO make sure weights are not assumed to be fractional anywhere in the project
-
     if weights == -1:
         num_weight_classes = config["num_weight_classes"]
         weight_per_class = config["weight_per_class"]
         assert num_weight_classes == len(weight_per_class)
-        ids_weight_classes = np.split(np.arange(0, num_agents), num_weight_classes)
+        ids_weight_classes = np.split(
+            np.arange(0, num_agents), num_weight_classes)
         for wc, wpc in zip(ids_weight_classes, weight_per_class):
             agent_weights[wc] *= wpc
 
-    path = f"{folder_name}/logs/{num_agents}_agents/{policy_type}/{app_type}_{app_sub_type}"
+    agent_weights /= agent_weights.sum()
+
+    path = f"{folder_name}/results/{num_agents}_agents/{scheduler_type}/{app_type}_{app_sub_type}"
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -76,36 +90,60 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, threshold_in
     worker_processors: list[Process] = []
 
     if scheduler_type == "mtf_scheduler":
-        scheduler = mtf_scheduler.MTFScheduler(agent_weights, num_agents, num_clusters, token_coefficient)
+        scheduler = mtf_scheduler.MTFScheduler(
+            agent_weights, num_agents, num_clusters, token_coefficient)
     elif scheduler_type == "g_fair_scheduler":
-        scheduler = g_fair_scheduler.GFairScheduler(agent_weights, num_agents, num_clusters)
+        scheduler = g_fair_scheduler.GFairScheduler(
+            agent_weights, num_agents, num_clusters)
+    elif scheduler_type == "rr_scheduler":
+        scheduler = rr_scheduler.RoundRobinScheduler(
+            agent_weights, num_agents, num_clusters)
+    elif scheduler_type == "themis_scheduler":
+        scheduler = ftf_scheduler.FinishTimeFairnessScheduler(
+            agent_weights, num_agents, num_clusters)
     else:
         sys.exit("unknown scheduler type")
 
-    coordinator = Coordinator(scheduler, num_iterations, num_agents, num_clusters, num_workers, w2c_queues, c2w_queues)
+    coordinator = Coordinator(scheduler, num_iterations, num_agents,
+                              num_clusters, num_workers, w2c_queues, c2w_queues)
     coordinator_processor = Process(target=coordinator.run, args=())
     coordinator_processor.start()
 
     for agent_id in range(num_agents):
         if policy_type == "ac_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
-            dist_app = create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id)
-            # TODO read parameters from config and set them accordingly
-            policy = ac_policy.ACPolicy(num_clusters)
-            agent = ac_agent.ACAgent(agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
+            dist_app = create_dist_app(
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
+            policy = ac_policy.ACPolicy(a_input_size=(num_agents + num_clusters), c_input_size=(num_agents + num_clusters),
+                                        a_h1_size=a_h1_size, c_h1_size=c_h1_size, c_h2_size=c_h2_size,
+                                        a_lr=ac_a_lr, c_lr=ac_c_lr, df=ac_discount_factor, std_max=std_max, num_clusters=num_clusters,
+                                        mini_batch_size=mini_batch_size)
+            agent = ac_agent.ACAgent(
+                agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
         elif policy_type == "thr_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
-            dist_app = create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id)
+            dist_app = create_dist_app(
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
             threshold = threshold_in
             if threshold_in == -1:
                 threshold = config["threshold"][app_type][app_sub_type]
             policy = fixed_thr_policy.FixedThrPolicy(num_clusters, threshold)
-            agent = ac_agent.ACAgent(agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
+            agent = ac_agent.ACAgent(
+                agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
         elif policy_type == "g_fair_policy":
             load_calculator = GFairLoadCalculator()
-            dist_app = create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id)
+            dist_app = create_dist_app(
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
             policy = g_fair_policy.GFairPolicy(num_clusters)
-            agent = g_fair_agent.GFairAgent(agent_id, agent_weights[agent_id], dist_app, policy)
+            agent = g_fair_agent.GFairAgent(
+                agent_id, agent_weights[agent_id], dist_app, policy)
+        elif policy_type == "themis_policy":
+            load_calculator = ExpectedWaitTimeLoadCalculator()
+            dist_app = create_dist_app(
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
+            policy = ftf_policy.ThemisPolicy(num_clusters)
+            agent = ftf_agent.ThemisAgent(
+                agent_id, agent_weights[agent_id], dist_app, policy)
         else:
             sys.exit("Unknown policy type!")
 
@@ -114,7 +152,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, threshold_in
     ids_list = np.array_split(np.arange(0, num_agents), num_workers)
     for worker_id in range(0, num_workers):
         worker = Worker(agents_list[ids_list[worker_id][0]:ids_list[worker_id]
-                                                           [-1] + 1], num_clusters, w2c_queues[worker_id], c2w_queues[worker_id])
+                                    [-1] + 1], num_clusters, w2c_queues[worker_id], c2w_queues[worker_id])
         worker_processor = Process(target=worker.run, args=(path,))
         worker_processors.append(worker_processor)
         worker_processor.start()
@@ -131,15 +169,21 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, threshold_in
 
 if __name__ == "__main__":
     config_file_path = project_src_path + "config/sys_config_default.json"
+    random.seed(14)
+    np.random.seed(14)
+    torch.manual_seed(14)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('app_type_id', type=int)
     parser.add_argument('app_type_sub_id', type=int)
     parser.add_argument('policy_id', type=int)
+    parser.add_argument('scheduler_id', type=int)
     args = parser.parse_args()
     main(config_file_path, args.app_type_id,
-         args.app_type_sub_id, args.policy_id, -1)
+         args.app_type_sub_id, args.policy_id, args.scheduler_id)
     print("Done")
 
-# python test/test.py 1 0 0 --> queue, q0, AC
-# python test/test.py 1 0 1 --> queue, q0, G-fair
+# python test/test.py 1 0 0 0 --> queue, q0, AC
+# python test/test.py 1 0 1 1 --> queue, q0, G-fair
+# python test/test.py 1 0 1 2 --> queue, q0, RR
+# python test/test.py 1 0 2 3 --> queue, q0, Themis

@@ -11,6 +11,9 @@ class Scheduler:
 
     def run_scheduler(self, iteration, demands):
         raise NotImplementedError
+    
+    def set_more_data(self, data):
+        return
 
 
 

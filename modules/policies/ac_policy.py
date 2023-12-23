@@ -1,8 +1,10 @@
+import os
 from modules.policies import Policy
 import numpy as np
 import torch
 from torch import nn, optim
 from torch.distributions import Normal
+
 
 class Critic(nn.Module):
     def __init__(self, input_size, h1_size, h2_size, lr):
@@ -27,17 +29,21 @@ class Actor(nn.Module):
         self.actor_layer1 = nn.Linear(a_l1_size, h1_size)
         self.actor_layer2_mean = nn.Linear(h1_size, 1)
         self.actor_layer2_std = nn.Linear(h1_size, 1)
+        self.out_layer = nn.Linear(h1_size, 10)
         self.optimizer = optim.AdamW(self.parameters(), lr=lr)
         self.std_max = std_max
 
     def forward(self, x):
-        x = torch.relu(self.actor_layer1(x))
-        mean = self.actor_layer2_mean(x)
-        std = self.std_max
-        dist = Normal(loc=mean, scale=std)
-        u = dist.sample()
-        log_prob = dist.log_prob(u)
-        return u, log_prob
+        x = torch.tanh(self.actor_layer1(x))
+        # mean = self.actor_layer2_mean(x)
+        # std = self.std_max
+        # dist = Normal(loc=mean, scale=std)
+        # u = dist.sample()
+        # log_prob = dist.log_prob(u)
+        prob = torch.softmax(self.out_layer(x), dim=0)
+        thr = np.random.choice(
+            [i/10. for i in range(10)], p=prob.detach().numpy())
+        return thr, torch.log(prob)
 
     def get_mean_std(self, x):
         x = torch.relu(self.actor_layer1(x))
@@ -60,6 +66,8 @@ class ACPolicy(Policy):
         self.log_probs = []
         self.iteration = 0
         self.mini_batch_size = mini_batch_size
+        self.thr_history = []
+        self.reward_history = []
 
     def compute_returns(self, next_state_value):
         r = next_state_value
@@ -71,15 +79,18 @@ class ACPolicy(Policy):
 
     def get_new_threshold(self, state):
         state_tensor = torch.tensor(state, dtype=torch.float32)
-        threshold, self.log_prob = self.actor(state_tensor)
-        return threshold.item()
+        self.threshold, self.log_prob = self.actor(state_tensor)
+
+        return self.threshold.item()
 
     def get_demands(self, state):
         [loads, tokens] = state
         state_array = np.concatenate((loads, tokens))
         threshold = self.get_new_threshold(state_array)
+        self.thr_history.append(threshold)
         demands = loads.copy()
         demands[demands < threshold] = 0
+        # print(demands)
         return demands
 
     def printable_action(self, state):
@@ -89,7 +100,8 @@ class ACPolicy(Policy):
     def update_policy(self, old_state, action, reward, next_state):
         self.values.append(self.state_value)
         self.rewards.append(reward)
-        self.log_probs.append(self.log_prob)
+        self.reward_history.append(reward)
+        self.log_probs.append(self.log_prob[int(self.threshold * 10)])
 
         [next_load, next_tokens] = next_state
         next_state_array = np.concatenate((next_load, next_tokens))
@@ -102,7 +114,10 @@ class ACPolicy(Policy):
             returns = torch.cat(returns).detach()
             values = torch.cat(self.values)
             advantage = returns - values
-            log_probs = torch.cat(self.log_probs)
+            if self.mini_batch_size == 1:
+                log_probs = self.log_probs[0]
+            else:
+                log_probs = torch.cat(self.log_probs)
             actor_loss = -(log_probs * advantage.detach()).mean()
 
             self.actor.optimizer.zero_grad()
@@ -121,3 +136,12 @@ class ACPolicy(Policy):
             self.iteration = 0
 
         self.state_value = self.critic(next_state_tensor)
+
+    def stop(self, path, id):
+        agent_path = path + '/agent_' + str(id)
+        if not os.path.exists(agent_path):
+            os.makedirs(agent_path)
+        np.savetxt(agent_path + '/thresholds.csv',
+                   self.thr_history, fmt='%.2f', delimiter=',')
+        np.savetxt(agent_path + '/rewards.csv',
+                   self.reward_history, fmt='%.2f', delimiter=',')

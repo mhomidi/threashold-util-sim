@@ -37,7 +37,8 @@ class QueueApplication(Application):
         self.state_history.append(self.state)
         self.queue_length_history.append(self.queue_length)
         self.loads_history.append(self.load)
-        self.departure = min(self.queue_length + self.arrival, self.departure_generator.generate() * self.assignment)
+        self.departure = min(self.queue_length + self.arrival,
+                             self.departure_generator.generate() * self.assignment)
         self.avg_throughput *= (1 - self.avg_throughput_alpha)
         self.avg_throughput += (self.avg_throughput_alpha * self.departure)
         avg_throughput = self.avg_throughput + 1e-3
@@ -45,6 +46,7 @@ class QueueApplication(Application):
                                 self.avg_throughput_alpha) ** (iteration + 1))
         self.queue_length = self.queue_length + self.arrival - self.departure
         self.state = min(self.max_queue_length, self.queue_length)
+        self.queue_length = self.state
         self.load = self.load_calculator.calculate_load(
             self.queue_length, avg_throughput)
 
@@ -64,4 +66,4 @@ class QueueApplication(Application):
         data = np.array([self.queue_length_history, self.assignment_history,
                         self.state_history, self.loads_history]).T
         np.savetxt(path + "/app_" + str(id) + '.csv',
-                   data, delimiter=',', fmt='%10.2f')
+                   data, delimiter=',', fmt='%.2f')

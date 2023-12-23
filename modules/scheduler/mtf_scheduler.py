@@ -27,6 +27,5 @@ class MTFScheduler(Scheduler):
             gathered_tokens += 1
             demands[:, preferred_cluster] = 0
 
-        weights = self.agent_weights / self.agent_weights.sum()
-        self.tokens += weights * gathered_tokens
+        self.tokens += self.agent_weights * gathered_tokens
         return self.assignments, self.tokens
