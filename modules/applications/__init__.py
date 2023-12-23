@@ -50,3 +50,6 @@ class DistributedApplication:
             app.stop(app_path, id)
         np.savetxt(app_path + '/utility.csv',
                    self.utility_history, fmt='%d', delimiter=',')
+
+    def get_more_data(self):
+        return None

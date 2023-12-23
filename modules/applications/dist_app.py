@@ -12,6 +12,7 @@ class DistQueueApp(DistributedApplication):
         self.loads = np.zeros(self.cluster_size)
         self.load_balancer = load_balancer
         self.agent_len = agents_len
+        self.exp_departure = list()
 
     def update_dist_app(self, iteration, assignments):
         super().update_dist_app(iteration, assignments)
@@ -22,6 +23,7 @@ class DistQueueApp(DistributedApplication):
         per_queue_arrivals = self.load_balancer.balance_load(
             arrivals, self.loads)
 
+        self.exp_departure.clear()
         self.utility = 0
         for i, app in enumerate(self.applications):
             app: QueueApplication
@@ -31,6 +33,7 @@ class DistQueueApp(DistributedApplication):
 
             self.loads[i] = app.get_load()
             self.utility -= app.get_current_queue_length()
+            self.exp_departure.append(app.get_current_queue_length())
 
-    def stop(self, path):
-        return super().stop(path)
+    def get_more_data(self):
+        return np.array(self.exp_departure)

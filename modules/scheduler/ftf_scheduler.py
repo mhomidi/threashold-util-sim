@@ -13,7 +13,6 @@ class FinishTimeFairnessScheduler(Scheduler):
         self.throughputs = data
 
     def run_scheduler(self, iteration, demands) -> list:
-        # q_lengths = demands.sum(axis=1)
         q_lengths = demands
         g_ex = self.get_g_ex()
         throughputs = self.throughputs.copy()

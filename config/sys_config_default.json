@@ -1022,7 +1022,7 @@
     "weight_per_class": [
         2
     ],
-    "num_iterations": 4000,
+    "num_iterations": 3000,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_avg_throughput_alpha": 0.01

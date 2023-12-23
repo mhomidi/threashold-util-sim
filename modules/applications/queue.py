@@ -2,6 +2,8 @@ from modules.applications import Application
 from utils.distribution import Generator
 from modules.utils.load_utils import *
 
+DEPART_ALPHA = 0.98
+
 
 class QueueApplication(Application):
 
@@ -20,7 +22,8 @@ class QueueApplication(Application):
         self.assignment_history = list()
         self.avg_throughput = 0
         self.avg_throughput_alpha = avg_throughput_alpha
-        self.departure = 0
+        self.actual_departure = 0
+        self.expected_departure = 0
         self.load = 0
         self.loads_history = list()
         self.state_history = list()
@@ -37,14 +40,19 @@ class QueueApplication(Application):
         self.state_history.append(self.state)
         self.queue_length_history.append(self.queue_length)
         self.loads_history.append(self.load)
-        self.departure = min(self.queue_length + self.arrival,
-                             self.departure_generator.generate() * self.assignment)
+        departure = self.departure_generator.generate()
+        self.actual_departure = min(self.queue_length + self.arrival,
+                                    departure * self.assignment)
+        # self.expected_departure = (self.expected_departure * DEPART_ALPHA) + ((1 - DEPART_ALPHA) * min(departure, self.queue_length + self.arrival))
+        self.expected_departure = min(
+            departure, self.queue_length + self.arrival)
         self.avg_throughput *= (1 - self.avg_throughput_alpha)
-        self.avg_throughput += (self.avg_throughput_alpha * self.departure)
+        self.avg_throughput += (self.avg_throughput_alpha *
+                                self.actual_departure)
         avg_throughput = self.avg_throughput + 1e-3
         avg_throughput /= (1 - (1 -
                                 self.avg_throughput_alpha) ** (iteration + 1))
-        self.queue_length = self.queue_length + self.arrival - self.departure
+        self.queue_length = self.queue_length + self.arrival - self.actual_departure
         self.state = min(self.max_queue_length, self.queue_length)
         self.queue_length = self.state
         self.load = self.load_calculator.calculate_load(
@@ -54,10 +62,13 @@ class QueueApplication(Application):
         return self.queue_length
 
     def get_imm_throughput(self):
-        return self.departure
+        return self.actual_departure
 
     def get_avg_throughput(self):
         return self.avg_throughput
+
+    def get_exp_departure(self):
+        return self.expected_departure
 
     def get_load(self):
         return self.load
