@@ -54,6 +54,7 @@ class Coordinator:
         agent_ids = np.arange(0, self.num_agents)
         workers_agent_ids = np.array_split(agent_ids, self.num_workers)
         time_duration = time.time()
+        t = []
 
         for iteration in range(self.num_iterations):
             demands_array = np.zeros((self.num_agents, self.num_clusters))
@@ -62,7 +63,7 @@ class Coordinator:
                 demands, more_data = q.get()
                 demands_array[ids] = demands
                 more[ids] = more_data
-
+            start = time.time()
             self.scheduler.set_more_data(more)
 
             assignments, extra = self.scheduler.run_scheduler(
@@ -72,7 +73,7 @@ class Coordinator:
                 extra = np.zeros(self.num_agents)
 
             workers_assignments = np.array_split(assignments, self.num_workers)
-
+            t.append(time.time() - start)
             for q, w_s in zip(self.c2w_queues, workers_assignments):
                 q.put((w_s, extra, iteration))
 
@@ -81,6 +82,8 @@ class Coordinator:
                     iter=iteration + 1, t=time.time() - time_duration))
                 time_duration = time.time()
         print('sending stop ...')
+        print('Average sched time: {avg:.4f}ms'.format(
+              avg=(np.array(t).mean() * 1000)))
         for q in self.c2w_queues:
             q.put('stop')
         print('Coordinator done')

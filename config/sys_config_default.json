@@ -985,6 +985,7 @@
         "g_fair_scheduler",
         "rr_scheduler",
         "themis_scheduler",
+        "expected_scheduler",
         "thr_policy"
     ],
     "policy_types": [
@@ -1025,5 +1026,13 @@
     "num_iterations": 3000,
     "num_workers": 2,
     "token_coefficient": 100,
-    "queue_app_avg_throughput_alpha": 0.01
+    "queue_app_avg_throughput_alpha": 0.01,
+    "speed_ups": [
+        1,
+        1.5
+    ],
+    "sp_weights": [
+        3,
+        2
+    ]
 }

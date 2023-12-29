@@ -19,7 +19,13 @@ from multiprocessing import Process, Queue
 project_src_path = os.path.dirname(os.path.abspath(__file__)) + "/../"
 
 
-def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agents_len):
+def get_speed_up_factors(speed_ups, sp_weights, num_clusters):
+    ws = sp_weights / sp_weights.sum()
+    sp_factors = np.random.choice(speed_ups, size=num_clusters, p=ws)
+    return sp_factors
+
+
+def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agents_len, speed_up_factors):
     if app_type == "queue":
         arrival_tps = config["queue_app_arrival_tps"][app_sub_type]
         departure_tps = config["queue_app_departure_tps"][app_sub_type]
@@ -31,7 +37,7 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         for j in range(num_clusters):
             depart_gen = PoissonGenerator(departure_tps)
             app = QueueApplication(
-                max_queue_length, depart_gen, avg_throughput_alpha, load_calculator)
+                max_queue_length, depart_gen, avg_throughput_alpha, load_calculator, speed_up_factors[j])
             apps.append(app)
 
         dist_app = DistQueueApp(
@@ -41,7 +47,7 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         sys.exit("Unknown app type: {}".format(app_type))
 
 
-def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, weights=-1):
+def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, weights=-1, n_agents=None, n_clusters=None):
     start_time = time.time()
     with open(config_file_name, 'r') as f:
         config = json.load(f)
@@ -66,6 +72,8 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     ac_a_lr = config['a_lr'][app_type][app_sub_type]
     ac_c_lr = config['c_lr'][app_type][app_sub_type]
     std_max = config['std_max'][app_type][app_sub_type]
+    speed_ups = np.array(config['speed_ups'])
+    sp_weights = np.array(config['sp_weights'])
 
     agent_weights = np.ones(num_agents)
     if weights == -1:
@@ -79,7 +87,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
 
     agent_weights /= agent_weights.sum()
 
-    path = f"{folder_name}/results/{num_agents}_agents/{scheduler_type}/{app_type}_{app_sub_type}"
+    path = f"{folder_name}/logs/{num_agents}_agents/{scheduler_type}/{app_type}_{app_sub_type}"
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -110,10 +118,11 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     coordinator_processor.start()
 
     for agent_id in range(num_agents):
+        sp_factors = get_speed_up_factors(speed_ups, sp_weights, num_clusters)
         if policy_type == "ac_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents, sp_factors)
             policy = ac_policy.ACPolicy(a_input_size=(num_agents + num_clusters), c_input_size=(num_agents + num_clusters),
                                         a_h1_size=a_h1_size, c_h1_size=c_h1_size, c_h2_size=c_h2_size,
                                         a_lr=ac_a_lr, c_lr=ac_c_lr, df=ac_discount_factor, std_max=std_max, num_clusters=num_clusters,
@@ -123,7 +132,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         elif policy_type == "thr_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents, sp_factors)
             threshold = threshold_in
             if threshold_in == -1:
                 threshold = config["threshold"][app_type][app_sub_type]
@@ -133,14 +142,14 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         elif policy_type == "g_fair_policy":
             load_calculator = GFairLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents, sp_factors)
             policy = g_fair_policy.GFairPolicy(num_clusters)
             agent = g_fair_agent.GFairAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy)
         elif policy_type == "themis_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, num_agents, sp_factors)
             policy = ftf_policy.ThemisPolicy(num_clusters)
             agent = ftf_agent.ThemisAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy)
