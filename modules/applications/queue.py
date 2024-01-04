@@ -2,6 +2,7 @@ from modules.applications import Application
 from utils.distribution import Generator
 from modules.utils.load_utils import *
 
+# TODO: add this to config file and pass it to QueueApp
 DEPART_ALPHA = 0.98
 
 
@@ -30,7 +31,6 @@ class QueueApplication(Application):
         self.arrival_history = list()  # for EF
         self.departure_history = list()  # for EF
         self.load_calculator = load_calculator
-        self.speed_up_factor = sp_factor
 
     def set_arrival(self, arrival):
         self.arrival = arrival
@@ -44,23 +44,18 @@ class QueueApplication(Application):
         self.state_history.append(self.state)
         self.queue_length_history.append(self.queue_length)
         self.loads_history.append(self.load)
-        departure = self.departure_generator.generate() * self.speed_up_factor
+
+        departure = self.departure_generator.generate()
         self.departure_history.append(departure)
-        self.actual_departure = min(self.queue_length + self.arrival,
-                                    departure * self.assignment)
-        self.expected_departure = min(
-            departure, self.queue_length + self.arrival)
+        self.actual_departure = min(self.queue_length + self.arrival, departure * self.assignment)
+        self.expected_departure = min(self.departure_generator.rate, self.queue_length + self.arrival)
         self.avg_throughput *= (1 - self.avg_throughput_alpha)
-        self.avg_throughput += (self.avg_throughput_alpha *
-                                self.actual_departure)
-        avg_throughput = self.avg_throughput + 1e-3
-        avg_throughput /= (1 - (1 -
-                                self.avg_throughput_alpha) ** (iteration + 1))
+        self.avg_throughput += (self.avg_throughput_alpha * self.actual_departure)
+        avg_throughput = self.avg_throughput
+        avg_throughput /= (1 - (1 - self.avg_throughput_alpha) ** (iteration + 1))
         self.queue_length = self.queue_length + self.arrival - self.actual_departure
         self.state = min(self.max_queue_length, self.queue_length)
-        self.queue_length = self.state
-        self.load = self.load_calculator.calculate_load(
-            self.queue_length, avg_throughput)
+        self.load = self.load_calculator.calculate_load(self.queue_length, avg_throughput)
 
     def get_current_queue_length(self):
         return self.queue_length
@@ -76,6 +71,9 @@ class QueueApplication(Application):
 
     def get_load(self):
         return self.load
+
+    def get_normalized_state(self):
+        return self.state / self.max_queue_length
 
     def stop(self, path, id):
         data = np.array([self.queue_length_history, self.assignment_history,

@@ -25,7 +25,8 @@ def get_speed_up_factors(speed_ups, sp_weights, num_clusters):
     return sp_factors
 
 
-def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agents_len, speed_up_factors):
+def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters,
+                    agent_id, agents_len, speed_up_factors):
     if app_type == "queue":
         arrival_tps = config["queue_app_arrival_tps"][app_sub_type]
         departure_tps = config["queue_app_departure_tps"][app_sub_type]
@@ -33,15 +34,14 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         avg_throughput_alpha = config["queue_app_avg_throughput_alpha"]
         apps = list()
         load_balancer = RandomLoadBalancer()
+        # TODO adjust arrival_tps
         arrival_gen = PoissonGenerator(arrival_tps)
         for j in range(num_clusters):
-            depart_gen = PoissonGenerator(departure_tps)
-            app = QueueApplication(
-                max_queue_length, depart_gen, avg_throughput_alpha, load_calculator, speed_up_factors[j])
+            depart_gen = PoissonGenerator(departure_tps * speed_up_factors[j])
+            app = QueueApplication(max_queue_length, depart_gen, avg_throughput_alpha, load_calculator)
             apps.append(app)
 
-        dist_app = DistQueueApp(
-            agent_id, apps, arrival_gen, load_balancer, agents_len)
+        dist_app = DistQueueApp(agent_id, apps, arrival_gen, load_balancer)
         return dist_app
     else:
         sys.exit("Unknown app type: {}".format(app_type))

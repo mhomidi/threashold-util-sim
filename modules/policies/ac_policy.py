@@ -1,4 +1,6 @@
 import os
+import sys
+
 from modules.policies import Policy
 import numpy as np
 import torch
@@ -23,33 +25,50 @@ class Critic(nn.Module):
 
 
 class Actor(nn.Module):
-    def __init__(self, input_size, h1_size, lr, std_max):
+    def __init__(self, input_size, output_size, h1_size, lr, std_max, net_type):
         super().__init__()
         a_l1_size = input_size
         self.actor_layer1 = nn.Linear(a_l1_size, h1_size)
-        self.actor_layer2_mean = nn.Linear(h1_size, 1)
-        self.actor_layer2_std = nn.Linear(h1_size, 1)
-        self.out_layer = nn.Linear(h1_size, 10)
+        self.net_type = net_type
+        self.output_size = output_size
+        if net_type == 'normal':
+            self.actor_layer2_mean = nn.Linear(h1_size, 1)
+        elif net_type == 'softmax':
+            self.actor_layer2 = nn.Linear(h1_size, h1_size)
+            self.out_layer = nn.Linear(h1_size, output_size)
+        else:
+            sys.exit('Unrecognized net type')
         self.optimizer = optim.AdamW(self.parameters(), lr=lr)
         self.std_max = std_max
 
     def forward(self, x):
-        x = torch.tanh(self.actor_layer1(x))
-        # mean = self.actor_layer2_mean(x)
-        # std = self.std_max
-        # dist = Normal(loc=mean, scale=std)
-        # u = dist.sample()
-        # log_prob = dist.log_prob(u)
-        prob = torch.softmax(self.out_layer(x), dim=0)
-        thr = np.random.choice(
-            [i/10. for i in range(10)], p=prob.detach().numpy())
-        return thr, torch.log(prob)
+        x = torch.relu(self.actor_layer1(x))
+        if self.net_type == 'normal':
+            mean = self.actor_layer2_mean(x)
+            dist = Normal(loc=mean, scale=self.std_max)
+            u = dist.sample()
+            log_prob = dist.log_prob(u)
+        elif self.net_type == 'softmax':
+            x = torch.relu(self.actor_layer2(x))
+            prob = torch.softmax(self.out_layer(x), dim=-1)
+            u = np.random.choice([i/self.output_size for i in range(self.output_size)], p=prob.detach().numpy())
+            log_prob = torch.log(prob)
+        else:
+            sys.exit('Unrecognized')
+        return u, log_prob
 
     def get_mean_std(self, x):
         x = torch.relu(self.actor_layer1(x))
-        mean = self.actor_layer2_mean(x)
-        std = self.std_max
-        return mean, std
+        if self.net_type == 'normal':
+            mean = self.actor_layer2_mean(x)
+            std = self.std_max
+            return mean, std
+        elif self.net_type == 'softmax':
+            x = torch.relu(self.actor_layer2(x))
+            prob = torch.softmax(self.out_layer(x), dim=-1)
+            return prob
+        else:
+            return 0
 
 
 class ACPolicy(Policy):

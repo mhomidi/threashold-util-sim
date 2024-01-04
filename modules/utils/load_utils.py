@@ -33,4 +33,7 @@ class GFairLoadCalculator(LoadCalculator):
 class ExpectedWaitTimeLoadCalculator(LoadCalculator):
     @staticmethod
     def calculate_load(queue_length, avg_departure_rate):
-        return queue_length / avg_departure_rate
+        if avg_departure_rate == 0:
+            return queue_length
+        else:
+            return queue_length / avg_departure_rate

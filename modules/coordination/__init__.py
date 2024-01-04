@@ -2,6 +2,8 @@ from multiprocessing import Queue
 import time
 import numpy as np
 
+
+# TODO: put it in config file
 ITER_PRINT_STEP = 100
 
 
@@ -17,7 +19,7 @@ class Worker:
     def run(self, path):
         demands = np.zeros((self.agents_len, self.num_clusters))
         for i, agent in enumerate(self.agents):
-            demands[i] = agent.init_demand
+            demands[i] = agent.demand
 
         more_data = np.ones((self.agents_len, self.num_clusters))
         while True:
