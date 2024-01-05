@@ -17,7 +17,3 @@ class ThemisAgent(Agent):
         new_state = self.dist_app.get_state()
         self.demands = self.policy.get_demands(new_state)
         return self.demands
-
-    def get_more_data(self):
-        # return exp_departure
-        return self.dist_app.get_more_data()

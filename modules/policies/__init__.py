@@ -13,5 +13,5 @@ class Policy:
     def printable_action(self, state):
         raise NotImplementedError
 
-    def stop(self, path, id):
+    def stop(self, path, agent_id):
         raise NotImplementedError

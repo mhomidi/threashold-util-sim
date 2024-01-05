@@ -156,8 +156,8 @@ class ACPolicy(Policy):
 
         self.state_value = self.critic(next_state_tensor)
 
-    def stop(self, path, id):
-        agent_path = path + '/agent_' + str(id)
+    def stop(self, path, agent_id):
+        agent_path = path + '/agent_' + str(agent_id)
         if not os.path.exists(agent_path):
             os.makedirs(agent_path)
         np.savetxt(agent_path + '/thresholds.csv',

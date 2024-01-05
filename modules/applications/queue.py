@@ -23,8 +23,7 @@ class QueueApplication(Application):
         self.assignment_history = list()
         self.avg_throughput = 0
         self.avg_throughput_alpha = avg_throughput_alpha
-        self.actual_departure = 0
-        self.expected_departure = 0
+        self.departure = 0
         self.load = 0
         self.loads_history = list()
         self.state_history = list()
@@ -47,13 +46,12 @@ class QueueApplication(Application):
 
         departure = self.departure_generator.generate()
         self.departure_history.append(departure)
-        self.actual_departure = min(self.queue_length + self.arrival, departure * self.assignment)
-        self.expected_departure = min(self.departure_generator.rate, self.queue_length + self.arrival)
+        self.departure = min(self.queue_length + self.arrival, departure * self.assignment)
         self.avg_throughput *= (1 - self.avg_throughput_alpha)
-        self.avg_throughput += (self.avg_throughput_alpha * self.actual_departure)
+        self.avg_throughput += (self.avg_throughput_alpha * self.departure)
         avg_throughput = self.avg_throughput
         avg_throughput /= (1 - (1 - self.avg_throughput_alpha) ** (iteration + 1))
-        self.queue_length = self.queue_length + self.arrival - self.actual_departure
+        self.queue_length = self.queue_length + self.arrival - self.departure
         self.state = min(self.max_queue_length, self.queue_length)
         self.load = self.load_calculator.calculate_load(self.queue_length, avg_throughput)
 
@@ -61,16 +59,16 @@ class QueueApplication(Application):
         return self.queue_length
 
     def get_imm_throughput(self):
-        return self.actual_departure
+        return self.departure
 
     def get_avg_throughput(self):
         return self.avg_throughput
 
-    def get_exp_departure(self):
-        return self.expected_departure
-
     def get_load(self):
         return self.load
+
+    def get_state(self):
+        return self.queue_length
 
     def get_normalized_state(self):
         return self.state / self.max_queue_length

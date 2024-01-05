@@ -21,13 +21,12 @@ class Worker:
         for i, agent in enumerate(self.agents):
             demands[i] = agent.demand
 
-        more_data = np.ones((self.agents_len, self.num_clusters))
         while True:
-            self.w2c_queue.put((demands, more_data))
+            self.w2c_queue.put(demands)
 
             info = self.c2w_queue.get()
             if info == 'stop':
-                print('Start worker stoping ...')
+                print('Start worker stopping ...')
                 for agent in self.agents:
                     agent.stop(path)
                 break
@@ -36,7 +35,6 @@ class Worker:
             for i, agent in enumerate(self.agents):
                 agent.set_extra(extra)
                 demands[i] = agent.run_agent(iteration, assignments[i])
-                more_data[i] = agent.get_more_data()
         print('Worker done')
         return
 
@@ -62,9 +60,8 @@ class Coordinator:
             demands_array = np.zeros((self.num_agents, self.num_clusters))
             more = np.zeros((self.num_agents, self.num_clusters))
             for q, ids in zip(self.w2c_queues, workers_agent_ids):
-                demands, more_data = q.get()
+                demands = q.get()
                 demands_array[ids] = demands
-                more[ids] = more_data
             start = time.time()
             self.scheduler.set_more_data(more)
 

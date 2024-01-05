@@ -14,5 +14,5 @@ class GFairPolicy(Policy):
     def printable_action(self, state):
         return 0
     
-    def stop(self, path, id):
+    def stop(self, path, agent_id):
         return
