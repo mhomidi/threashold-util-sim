@@ -2,10 +2,6 @@ from modules.applications import Application
 from utils.distribution import Generator
 from modules.utils.load_utils import *
 
-# TODO: add this to config file and pass it to QueueApp
-DEPART_ALPHA = 0.98
-
-
 class QueueApplication(Application):
 
     # We use current_state only for training NN - otherwise, current_queue_length should be used

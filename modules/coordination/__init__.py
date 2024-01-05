@@ -3,10 +3,6 @@ import time
 import numpy as np
 
 
-# TODO: put it in config file
-ITER_PRINT_STEP = 100
-
-
 class Worker:
 
     def __init__(self, agents, num_clusters, w2c_queue: Queue, c2w_queue: Queue):
@@ -41,7 +37,8 @@ class Worker:
 
 class Coordinator:
 
-    def __init__(self, scheduler, num_iterations, num_agents, num_clusters, num_workers, w2c_queues, c2w_queues):
+    def __init__(self, scheduler, num_iterations, num_agents, num_clusters, num_workers,
+                 w2c_queues, c2w_queues, iter_print_step=100):
         self.scheduler = scheduler
         self.w2c_queues: list[Queue] = w2c_queues
         self.c2w_queues: list[Queue] = c2w_queues
@@ -49,6 +46,7 @@ class Coordinator:
         self.num_agents = num_agents
         self.num_iterations = num_iterations
         self.num_clusters = num_clusters
+        self.iter_print_step = iter_print_step
 
     def run(self):
         agent_ids = np.arange(0, self.num_agents)
@@ -63,11 +61,10 @@ class Coordinator:
                 demands = q.get()
                 demands_array[ids] = demands
             start = time.time()
-            self.scheduler.set_more_data(more)
 
             assignments, extra = self.scheduler.run_scheduler(
                 iteration, demands_array)
-            # print(assignments)
+
             if extra is None:
                 extra = np.zeros(self.num_agents)
 
@@ -76,7 +73,7 @@ class Coordinator:
             for q, w_s in zip(self.c2w_queues, workers_assignments):
                 q.put((w_s, extra, iteration))
 
-            if (iteration + 1) % ITER_PRINT_STEP == 0:
+            if (iteration + 1) % self.iter_print_step == 0:
                 print('iteration {iter} done in {t:.2f}s'.format(
                     iter=iteration + 1, t=time.time() - time_duration))
                 time_duration = time.time()

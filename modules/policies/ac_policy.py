@@ -13,13 +13,15 @@ class Critic(nn.Module):
         super().__init__()
         c_l1_size = input_size
         self.critic_layer1 = nn.Linear(c_l1_size, h1_size)
+        self.critic_layer1_norm = nn.LayerNorm(h1_size)
         self.critic_layer2 = nn.Linear(h1_size, h2_size)
+        self.critic_layer2_norm = nn.LayerNorm(h2_size)
         self.critic_layer3 = nn.Linear(h2_size, 1)
         self.optimizer = optim.AdamW(self.parameters(), lr=lr)
 
     def forward(self, x):
-        x = torch.relu(self.critic_layer1(x))
-        x = torch.relu(self.critic_layer2(x))
+        x = self.critic_layer1_norm(torch.relu(self.critic_layer1(x)))
+        x = self.critic_layer2_norm(torch.relu(self.critic_layer2(x)))
         state_value = self.critic_layer3(x)
         return state_value
 
@@ -29,12 +31,15 @@ class Actor(nn.Module):
         super().__init__()
         a_l1_size = input_size
         self.actor_layer1 = nn.Linear(a_l1_size, h1_size)
+        # all norm layer added for avoiding divergence
+        self.actor_layer1_norm = nn.LayerNorm(h1_size)
         self.net_type = net_type
         self.output_size = output_size
         if net_type == 'normal':
             self.actor_layer2_mean = nn.Linear(h1_size, 1)
         elif net_type == 'softmax':
             self.actor_layer2 = nn.Linear(h1_size, h1_size)
+            self.actor_layer2_norm = nn.LayerNorm(h1_size)
             self.out_layer = nn.Linear(h1_size, output_size)
         else:
             sys.exit('Unrecognized net type')
@@ -42,14 +47,14 @@ class Actor(nn.Module):
         self.std_max = std_max
 
     def forward(self, x):
-        x = torch.relu(self.actor_layer1(x))
+        x = self.actor_layer1_norm(torch.relu(self.actor_layer1(x)))
         if self.net_type == 'normal':
             mean = self.actor_layer2_mean(x)
             dist = Normal(loc=mean, scale=self.std_max)
             u = dist.sample()
             log_prob = dist.log_prob(u)
         elif self.net_type == 'softmax':
-            x = torch.relu(self.actor_layer2(x))
+            x = self.actor_layer2_norm(torch.relu(self.actor_layer2(x)))
             prob = torch.softmax(self.out_layer(x), dim=-1)
             u = np.random.choice([i/self.output_size for i in range(self.output_size)], p=prob.detach().numpy())
             log_prob = torch.log(prob)
@@ -73,9 +78,9 @@ class Actor(nn.Module):
 
 class ACPolicy(Policy):
     def __init__(self, a_input_size, c_input_size, a_h1_size, c_h1_size, c_h2_size,
-                 a_lr, c_lr, df, std_max, num_clusters, mini_batch_size=1):
+                 a_lr, c_lr, df, std_max, num_clusters, mini_batch_size=1, threshold_steps=10, actor_net_type='softmax'):
         super().__init__(num_clusters)
-        self.actor = Actor(a_input_size, a_h1_size, a_lr, std_max)
+        self.actor = Actor(a_input_size, threshold_steps, a_h1_size, a_lr, std_max, net_type=actor_net_type)
         self.critic = Critic(c_input_size, c_h1_size, c_h2_size, c_lr)
         self.log_prob = None
         self.discount_factor = df

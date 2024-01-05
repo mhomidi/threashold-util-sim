@@ -1015,16 +1015,18 @@
         "a_h1_size": 256,
         "c_h1_size": 64,
         "c_h2_size": 64,
-        "mini_batch_size": 1
+        "mini_batch_size": 1,
+        "threshold_steps": 10,
+        "actor_net_type": "softmax"
     },
-    "num_clusters": 40,
-    "num_agents": 20,
+    "num_clusters": 10,
+    "num_agents": 5,
     "num_weight_classes": 1,
     "weight_per_class": [
         2
     ],
-    "num_iterations": 3000,
-    "num_workers": 2,
+    "num_iterations": 1500,
+    "num_workers": 1,
     "token_coefficient": 100,
     "queue_app_avg_throughput_alpha": 0.01,
     "speed_ups": [
@@ -1034,5 +1036,6 @@
     "sp_weights": [
         3,
         2
-    ]
+    ],
+    "coordinator_step_print": 100
 }
