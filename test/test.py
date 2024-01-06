@@ -33,12 +33,12 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         max_queue_length = config["queue_app_max_queue_length"][app_sub_type]
         avg_throughput_alpha = config["queue_app_avg_throughput_alpha"]
         apps = list()
-        load_balancer = RandomLoadBalancer()
+        load_balancer = PowerOfTwoChoices(load_calculator)
         # TODO adjust arrival_tps
         arrival_gen = PoissonGenerator(arrival_tps)
         for j in range(num_clusters):
             depart_gen = PoissonGenerator(departure_tps * speed_up_factors[j])
-            app = QueueApplication(max_queue_length, depart_gen, avg_throughput_alpha, load_calculator)
+            app = QueueApplication(max_queue_length, depart_gen, avg_throughput_alpha)
             apps.append(app)
 
         dist_app = DistQueueApp(agent_id, apps, arrival_gen, load_balancer)
@@ -68,6 +68,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     a_h1_size = ac_policy_config['a_h1_size']
     c_h1_size = ac_policy_config['c_h1_size']
     c_h2_size = ac_policy_config['c_h2_size']
+    # TODO: Change it to max queue length
     threshold_steps = ac_policy_config['threshold_steps']
     actor_net_type = ac_policy_config['actor_net_type']
     mini_batch_size = ac_policy_config['mini_batch_size']

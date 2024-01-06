@@ -7,7 +7,7 @@ class QueueApplication(Application):
 
     # We use current_state only for training NN - otherwise, current_queue_length should be used
     def __init__(self, max_queue_length, departure_generator: Generator,
-                 avg_throughput_alpha, load_calculator: LoadCalculator, sp_factor=1.):
+                 avg_throughput_alpha):
         super().__init__()
         self.init_state = 0
         self.queue_length = 0
@@ -26,7 +26,6 @@ class QueueApplication(Application):
         self.state_history = list()
         self.arrival_history = list()  # for EF
         self.departure_history = list()  # for EF
-        self.load_calculator = load_calculator
 
     def set_arrival(self, arrival):
         self.arrival = arrival
@@ -50,7 +49,6 @@ class QueueApplication(Application):
         avg_throughput /= (1 - (1 - self.avg_throughput_alpha) ** (iteration + 1))
         self.queue_length = self.queue_length + self.arrival - self.departure
         self.state = min(self.max_queue_length, self.queue_length)
-        self.load = self.load_calculator.calculate_load(self.queue_length, avg_throughput)
 
     def get_current_queue_length(self):
         return self.queue_length
@@ -60,10 +58,7 @@ class QueueApplication(Application):
 
     def get_avg_throughput(self):
         return self.avg_throughput
-
-    def get_load(self):
-        return self.load
-
+    
     def get_state(self):
         return self.queue_length
 

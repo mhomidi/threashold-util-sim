@@ -44,15 +44,18 @@ class PowerOfTwoChoices(LoadBalancer):
     def balance_load(self, arrivals, current_q_lengths, avg_departure_rate):
         num_queues = len(current_q_lengths)
         per_queue_arrivals = np.zeros(num_queues)
+        if num_queues == 1:
+            per_queue_arrivals[0] = arrivals
+            return per_queue_arrivals
         probs = avg_departure_rate / avg_departure_rate.sum(axis=-1)
         for i in range(0, arrivals):
             new_q_lengths = per_queue_arrivals + current_q_lengths
-            new_loads = self.load_calculator(new_q_lengths, avg_departure_rate)
-            index1 = np.random.choice(range(0, num_queues), p=probs)
-            # TODO make sure that index2 is not equal to index1
-            index2 = np.random.choice(range(0, num_queues), p=probs)
+            new_loads = self.load_calculator.calculate_load(new_q_lengths, avg_departure_rate)
+            indices = np.random.choice(range(0, num_queues), size=(2, 1), replace=False, p=probs)
+            index1 = indices[0]
+            index2 = indices[1]
             if new_loads[index1] < new_loads[index2]:
                 per_queue_arrivals[index1] += 1
             else:
-                per_queue_arrivals[index2] +=1
+                per_queue_arrivals[index2] += 1
         return per_queue_arrivals

@@ -975,7 +975,7 @@
         "q4": 11
     },
     "queue_app_max_queue_length": {
-        "q1": 100,
+        "q1": 50,
         "q2": 50,
         "q3": 35,
         "q4": 20
@@ -1025,7 +1025,7 @@
     "weight_per_class": [
         2
     ],
-    "num_iterations": 1500,
+    "num_iterations": 10,
     "num_workers": 1,
     "token_coefficient": 100,
     "queue_app_avg_throughput_alpha": 0.01,
