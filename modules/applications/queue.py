@@ -2,6 +2,7 @@ from modules.applications import Application
 from utils.distribution import Generator
 from modules.utils.load_utils import *
 
+
 class QueueApplication(Application):
 
     # We use current_state only for training NN - otherwise, current_queue_length should be used

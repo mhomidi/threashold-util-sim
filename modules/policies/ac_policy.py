@@ -92,6 +92,7 @@ class ACPolicy(Policy):
         self.mini_batch_size = mini_batch_size
         self.thr_history = []
         self.reward_history = []
+        self.threshold = None
 
     def compute_returns(self, next_state_value):
         r = next_state_value
@@ -104,15 +105,14 @@ class ACPolicy(Policy):
     def get_new_threshold(self, state):
         state_tensor = torch.tensor(state, dtype=torch.float32)
         self.threshold, self.log_prob = self.actor(state_tensor)
-
         return self.threshold.item()
 
     def get_demands(self, state):
-        [loads, tokens] = state
-        state_array = np.concatenate((loads, tokens))
+        [normalized_q_lengths, tokens] = state
+        state_array = np.concatenate((normalized_q_lengths, tokens))
         threshold = self.get_new_threshold(state_array)
         self.thr_history.append(threshold)
-        demands = loads.copy()
+        demands = normalized_q_lengths.copy()
         demands[demands < threshold] = 0
         # print(demands)
         return demands
@@ -127,8 +127,8 @@ class ACPolicy(Policy):
         self.reward_history.append(reward)
         self.log_probs.append(self.log_prob[int(self.threshold * 10)])
 
-        [next_load, next_tokens] = next_state
-        next_state_array = np.concatenate((next_load, next_tokens))
+        [next_normalized_q_lengths, next_tokens] = next_state
+        next_state_array = np.concatenate((next_normalized_q_lengths, next_tokens))
         next_state_tensor = torch.tensor(next_state_array, dtype=torch.float32)
         self.iteration += 1
 

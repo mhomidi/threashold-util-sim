@@ -55,8 +55,8 @@ class DistributedApplication:
         app_path = path + '/agent_' + str(self.app_id)
         if not os.path.exists(app_path):
             os.makedirs(app_path)
-        for id, app in enumerate(self.applications):
-            app.stop(app_path, id)
+        for i, app in enumerate(self.applications):
+            app.stop(app_path, i)
         np.savetxt(app_path + '/utility.csv',
                    self.utility_history, fmt='%d', delimiter=',')
 
