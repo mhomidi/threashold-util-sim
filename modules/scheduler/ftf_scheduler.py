@@ -16,6 +16,7 @@ class FinishTimeFairnessScheduler(Scheduler):
         exclusive_utilization = self.arrival_rates / exclusive_departure_rates
         assert np.max(exclusive_utilization) < 1
         self.exclusive_q_lengths = exclusive_utilization / (1 - exclusive_utilization)
+        self.shared_queue_lengths = 0
 
     # TODO: get rid of set_more_data
     # TODO: for now, do not call this function anywhere
@@ -29,17 +30,20 @@ class FinishTimeFairnessScheduler(Scheduler):
 
     def run_scheduler(self, iteration, demands) -> list:
         ones_c = np.ones(self.num_clusters)
-        ones_ac = np.ones((self.num_agents, 1))
+        ones_ac = np.ones((self.num_agents, self.num_clusters))
 
         rho = cp.Variable(1)
         x = cp.Variable((self.num_agents, self.num_clusters), boolean=True)
-        shared_departure_rates = cp.sum(cp.multiply(x, self.departure_rates), axis=1, keepdims=True)
-        shared_queue_length = self.arrival_rates + demands.sum(axis=1) - shared_departure_rates
+        shared_departure_rates = cp.multiply(x, self.departure_rates)
+        # TODO: Experiment with this!
+        shared_queue_length = 0.9 * self.shared_queue_lengths + 0.1 * (demands - shared_departure_rates)
 
-        constraints = [cp.sum(x, axis=0) == ones_c, rho * ones_ac >= shared_queue_length / self.exclusive_q_lengths]
+        exc_q_lengths = ones_ac * self.exclusive_q_lengths
+        constraints = [cp.sum(x, axis=0) == ones_c, rho * ones_ac >= shared_queue_length / exc_q_lengths]
         objective = cp.Minimize(rho)
         problem = cp.Problem(objective, constraints)
         problem.solve()
         if problem.status != cp.OPTIMAL:
             raise Exception("aborted!")
+        self.shared_queue_lengths = shared_queue_length.value
         return x.value, None

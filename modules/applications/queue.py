@@ -19,6 +19,7 @@ class QueueApplication(Application):
         self.assignment = 0
         self.assignment_history = list()
         self.avg_throughput = 0
+        self.corr_avg_throughput = 0
         self.avg_throughput_alpha = avg_throughput_alpha
         self.departure = 0
         self.load = 0
@@ -45,8 +46,7 @@ class QueueApplication(Application):
         self.departure = min(self.queue_length + self.arrival, departure * self.assignment)
         self.avg_throughput *= (1 - self.avg_throughput_alpha)
         self.avg_throughput += (self.avg_throughput_alpha * self.departure)
-        avg_throughput = self.avg_throughput
-        avg_throughput /= (1 - (1 - self.avg_throughput_alpha) ** (iteration + 1))
+        self.corr_avg_throughput = self.avg_throughput / (1 - (1 - self.avg_throughput_alpha) ** (iteration + 1))
         self.queue_length = self.queue_length + self.arrival - self.departure
         self.state = min(self.max_queue_length, self.queue_length)
 
@@ -57,7 +57,7 @@ class QueueApplication(Application):
         return self.departure
 
     def get_avg_throughput(self):
-        return self.avg_throughput
+        return self.corr_avg_throughput
     
     def get_state(self):
         return self.queue_length

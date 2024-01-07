@@ -12,7 +12,7 @@ class DistQueueApp(DistributedApplication):
         self.arrival_generator = arrival_generator
         self.loads = np.zeros(self.cluster_size)
         self.load_balancer = load_balancer
-        self.app_dep_rates = np.array([app.departure_generator.rate for app in self.applications])
+        # self.app_dep_rates = np.array([app.departure_generator.rate for app in self.applications])
 
     def update_dist_app(self, iteration, assignments):
         super().update_dist_app(iteration, assignments)
@@ -22,7 +22,8 @@ class DistQueueApp(DistributedApplication):
 
         self.assignments = assignments
         arrivals = self.arrival_generator.generate()
-        per_queue_arrivals = self.load_balancer.balance_load(arrivals, current_queue_lengths, self.app_dep_rates)
+        app_dep_rates = np.array([app.get_avg_throughput() for app in self.applications])
+        per_queue_arrivals = self.load_balancer.balance_load(arrivals, current_queue_lengths, app_dep_rates)
 
         self.utility = 0
         for i, app in enumerate(self.applications):

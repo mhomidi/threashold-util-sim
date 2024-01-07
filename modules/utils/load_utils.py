@@ -17,7 +17,7 @@ class ExpectedWaitTimeLoadCalculator(LoadCalculator):
     @staticmethod
     def calculate_load(queue_length, avg_departure_rate):
         if avg_departure_rate == 0:
-            return queue_length
+            return queue_length / 0.0001
         else:
             return queue_length / avg_departure_rate
 
