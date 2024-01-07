@@ -8,6 +8,7 @@ import numpy as np
 class DistQueueApp(DistributedApplication):
     def __init__(self, app_id, applications, arrival_generator: Generator, load_balancer: LoadBalancer):
         super().__init__(app_id, applications)
+        self.applications: list[QueueApplication]
         self.arrival_generator = arrival_generator
         self.loads = np.zeros(self.cluster_size)
         self.load_balancer = load_balancer
