@@ -23,7 +23,6 @@ class QueueApplication(Application):
         self.avg_throughput_alpha = avg_throughput_alpha
         self.departure = 0
         self.load = 0
-        self.loads_history = list()
         self.state_history = list()
         self.arrival_history = list()  # for EF
         self.departure_history = list()  # for EF
@@ -39,7 +38,6 @@ class QueueApplication(Application):
     def update_state(self, iteration):
         self.state_history.append(self.state)
         self.queue_length_history.append(self.queue_length)
-        self.loads_history.append(self.load)
 
         departure = self.departure_generator.generate()
         self.departure_history.append(departure)
@@ -67,6 +65,6 @@ class QueueApplication(Application):
 
     def stop(self, path, id):
         data = np.array([self.queue_length_history, self.assignment_history,
-                        self.state_history, self.loads_history, self.arrival_history, self.departure_history]).T
+                        self.state_history, self.arrival_history, self.departure_history]).T
         np.savetxt(path + "/app_" + str(id) + '.csv',
                    data, delimiter=',', fmt='%.2f')

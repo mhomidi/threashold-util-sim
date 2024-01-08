@@ -12,13 +12,13 @@ class FinishTimeFairnessScheduler(Scheduler):
         self.departure_rates = departure_rates
         self.arrival_rates = arrival_rates
         weights = self.agent_weights / self.agent_weights.sum()
-        exclusive_departure_rates = self.departure_rates.sum(axis=1) * weights
+        # just for size compatibity
+        exclusive_departure_rates = self.departure_rates.sum(axis=1, keepdims=True) * shares
         exclusive_utilization = self.arrival_rates / exclusive_departure_rates
         assert np.max(exclusive_utilization) < 1
         self.exclusive_q_lengths = exclusive_utilization / (1 - exclusive_utilization)
         self.shared_queue_lengths = 0
 
-    # TODO: get rid of set_more_data
     # TODO: for now, do not call this function anywhere
     def update_scheduler(self, data):
         self.departure_rates, self.arrival_rates = data
@@ -35,8 +35,8 @@ class FinishTimeFairnessScheduler(Scheduler):
         rho = cp.Variable(1)
         x = cp.Variable((self.num_agents, self.num_clusters), boolean=True)
         shared_departure_rates = cp.multiply(x, self.departure_rates)
-        # TODO: Experiment with this!
-        shared_queue_length = 0.9 * self.shared_queue_lengths + 0.1 * (demands - shared_departure_rates)
+        # shared_queue_length = 0.9 * self.shared_queue_lengths + 0.1 * (demands - shared_departure_rates) Does not work
+        shared_queue_length = demands - shared_departure_rates
 
         exc_q_lengths = ones_ac * self.exclusive_q_lengths
         constraints = [cp.sum(x, axis=0) == ones_c, rho * ones_ac >= shared_queue_length / exc_q_lengths]

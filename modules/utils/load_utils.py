@@ -16,10 +16,8 @@ class GFairLoadCalculator(LoadCalculator):
 class ExpectedWaitTimeLoadCalculator(LoadCalculator):
     @staticmethod
     def calculate_load(queue_length, avg_departure_rate):
-        if avg_departure_rate == 0:
-            return queue_length / 0.0001
-        else:
-            return queue_length / avg_departure_rate
+        avg_departure_rate[avg_departure_rate <= 1e-5] = 1e-5
+        return queue_length / avg_departure_rate
 
 
 class LoadBalancer:
@@ -47,7 +45,18 @@ class PowerOfTwoChoices(LoadBalancer):
         if num_queues == 1:
             per_queue_arrivals[0] = arrivals
             return per_queue_arrivals
+
+        if avg_departure_rate.sum() == 0:
+            avg_departure_rate += 1
+
         probs = avg_departure_rate / avg_departure_rate.sum(axis=-1)
+        probs[probs <= 0.] = 0
+        probs /= probs.sum(axis=-1)
+
+        if probs[probs > 0].sum() < 2:
+            per_queue_arrivals[probs > 0] = arrivals
+            return per_queue_arrivals
+
         for i in range(0, arrivals):
             new_q_lengths = per_queue_arrivals + current_q_lengths
             new_loads = self.load_calculator.calculate_load(new_q_lengths, avg_departure_rate)
