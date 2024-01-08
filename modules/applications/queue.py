@@ -7,7 +7,7 @@ class QueueApplication(Application):
 
     # We use current_state only for training NN - otherwise, current_queue_length should be used
     def __init__(self, max_queue_length, departure_generator: Generator,
-                 avg_throughput_alpha):
+                 alpha):
         super().__init__()
         self.init_state = 0
         self.queue_length = 0
@@ -20,7 +20,8 @@ class QueueApplication(Application):
         self.assignment_history = list()
         self.avg_throughput = 0
         self.corr_avg_throughput = 0
-        self.avg_throughput_alpha = avg_throughput_alpha
+        self.avg_arrival_rate = 0
+        self.alpha = alpha
         self.departure = 0
         self.load = 0
         self.state_history = list()
@@ -29,6 +30,7 @@ class QueueApplication(Application):
 
     def set_arrival(self, arrival):
         self.arrival = arrival
+        self.avg_arrival_rate = self.alpha * self.avg_arrival_rate + (1 - self.alpha) * self.arrival
         self.arrival_history.append(arrival)
 
     def set_assignment(self, assignment):
@@ -42,9 +44,9 @@ class QueueApplication(Application):
         departure = self.departure_generator.generate()
         self.departure_history.append(departure)
         self.departure = min(self.queue_length + self.arrival, departure * self.assignment)
-        self.avg_throughput *= (1 - self.avg_throughput_alpha)
-        self.avg_throughput += (self.avg_throughput_alpha * self.departure)
-        self.corr_avg_throughput = self.avg_throughput / (1 - (1 - self.avg_throughput_alpha) ** (iteration + 1))
+        self.avg_throughput *= (1 - self.alpha)
+        self.avg_throughput += (self.alpha * self.departure)
+        self.corr_avg_throughput = self.avg_throughput / (1 - (1 - self.alpha) ** (iteration + 1))
         self.queue_length = self.queue_length + self.arrival - self.departure
         self.state = min(self.max_queue_length, self.queue_length)
 
@@ -56,6 +58,9 @@ class QueueApplication(Application):
 
     def get_avg_throughput(self):
         return self.corr_avg_throughput
+
+    def get_customized_state(self):
+        return self.queue_length + self.avg_arrival_rate
     
     def get_state(self):
         return self.queue_length

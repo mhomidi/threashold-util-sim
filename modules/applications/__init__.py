@@ -17,6 +17,9 @@ class Application:
     def get_normalized_state(self):
         return self.state
 
+    def get_customized_state(self):
+        return self.state
+
     def stop(self, path, app_id):
         raise NotImplementedError
 
@@ -46,6 +49,12 @@ class DistributedApplication:
         states = np.zeros(self.cluster_size)
         for i in range(0, self.cluster_size):
             states[i] = self.applications[i].get_normalized_state()
+        return states
+
+    def get_customized_state(self):
+        states = np.zeros(self.cluster_size)
+        for i in range(0, self.cluster_size):
+            states[i] = self.applications[i].get_customized_state()
         return states
 
     def get_cluster_size(self):

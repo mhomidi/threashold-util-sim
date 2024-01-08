@@ -31,14 +31,14 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         arrival_tps = config["queue_app_arrival_tps"][app_sub_type]
         departure_tps = config["queue_app_departure_tps"][app_sub_type]
         max_queue_length = config["queue_app_max_queue_length"][app_sub_type]
-        avg_throughput_alpha = config["queue_app_avg_throughput_alpha"]
+        alpha = config["queue_app_alpha"]
         apps = list()
         load_balancer = PowerOfTwoChoices(load_calculator)
         # TODO adjust arrival_tps
         arrival_gen = PoissonGenerator(arrival_tps)
         for j in range(num_clusters):
             depart_gen = PoissonGenerator(departure_tps * speed_up_factors[j])
-            app = QueueApplication(max_queue_length, depart_gen, avg_throughput_alpha)
+            app = QueueApplication(max_queue_length, depart_gen, alpha)
             apps.append(app)
 
         dist_app = DistQueueApp(agent_id, apps, arrival_gen, load_balancer)

@@ -1028,7 +1028,7 @@
     "num_iterations": 5000,
     "num_workers": 2,
     "token_coefficient": 100,
-    "queue_app_avg_throughput_alpha": 0.8,
+    "queue_app_alpha": 0.8,
     "speed_ups": [
         1,
         1.5
