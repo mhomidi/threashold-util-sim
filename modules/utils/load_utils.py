@@ -53,7 +53,7 @@ class PowerOfTwoChoices(LoadBalancer):
         probs[probs <= 0.] = 0
         probs /= probs.sum(axis=-1)
 
-        if probs[probs > 0].sum() < 2:
+        if (probs > 0).sum() < 2:
             per_queue_arrivals[probs > 0] = arrivals
             return per_queue_arrivals
 
