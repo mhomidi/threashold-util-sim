@@ -44,9 +44,9 @@ class QueueApplication(Application):
         departure = self.departure_generator.generate()
         self.departure_history.append(departure)
         self.departure = min(self.queue_length + self.arrival, departure * self.assignment)
-        self.avg_throughput *= (1 - self.alpha)
-        self.avg_throughput += (self.alpha * self.departure)
-        self.corr_avg_throughput = self.avg_throughput / (1 - (1 - self.alpha) ** (iteration + 1))
+        self.avg_throughput *= self.alpha
+        self.avg_throughput += ((1 - self.alpha) * self.departure)
+        self.corr_avg_throughput = self.avg_throughput / (1 - self.alpha ** (iteration + 1))
         self.queue_length = self.queue_length + self.arrival - self.departure
         self.state = min(self.max_queue_length, self.queue_length)
 
@@ -61,7 +61,7 @@ class QueueApplication(Application):
 
     def get_customized_state(self):
         return self.queue_length + self.avg_arrival_rate
-    
+
     def get_state(self):
         return self.queue_length
 

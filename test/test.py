@@ -33,7 +33,14 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         max_queue_length = config["queue_app_max_queue_length"][app_sub_type]
         alpha = config["queue_app_alpha"]
         apps = list()
-        load_balancer = PowerOfTwoChoices(load_calculator)
+        lb_type = config['lb_type']
+        if lb_type == 'p2c':
+            load_balancer = PowerOfTwoChoices(load_calculator)
+        elif lb_type == 'random':
+            load_balancer = RandomLoadBalancer(load_calculator)
+        else:
+            raise Exception('Wrong load balancer type')
+
         # TODO adjust arrival_tps
         arrival_gen = PoissonGenerator(arrival_tps)
         for j in range(num_clusters):

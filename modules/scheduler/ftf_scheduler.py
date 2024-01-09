@@ -3,7 +3,8 @@ import cvxpy as cp
 import numpy as np
 
 
-FTF_ALPHA = 0.99
+FTF_ALPHA = 0.9
+
 
 class FinishTimeFairnessScheduler(Scheduler):
 
@@ -35,13 +36,14 @@ class FinishTimeFairnessScheduler(Scheduler):
 
         rho = cp.Variable(1)
         x = cp.Variable((self.num_agents, self.num_clusters), boolean=True)
-        shared_departure_rates = cp.multiply(x, self.departure_rates)
-        shared_queue_length = FTF_ALPHA * self.shared_queue_lengths + (1 - FTF_ALPHA) * (demands - shared_departure_rates)
+        shared_departure_rates = cp.minimum(cp.multiply(x, self.departure_rates), demands)
+        # shared_queue_length = FTF_ALPHA * self.shared_queue_lengths + (1 - FTF_ALPHA) * (demands - shared_departure_rates)
+        shared_queue_length = demands - shared_departure_rates
 
         exc_q_lengths = ones_ac * self.exclusive_q_lengths
         constraints = [
-            cp.sum(x, axis=0) <= ones_c,
-            demands >= shared_departure_rates,
+            cp.sum(x, axis=0) == ones_c,
+            # demands >= shared_departure_rates,
             rho * ones_ac >= shared_queue_length / exc_q_lengths
         ]
         objective = cp.Minimize(rho)
@@ -50,4 +52,7 @@ class FinishTimeFairnessScheduler(Scheduler):
         if problem.status != cp.OPTIMAL:
             raise Exception(problem.status)
         self.shared_queue_lengths = shared_queue_length.value
-        return x.value, None
+        allocation = np.array(x.value > 0.5, dtype=np.int8)
+        if iteration == 50:
+            print(allocation)
+        return allocation, None

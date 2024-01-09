@@ -49,7 +49,7 @@ class Actor(nn.Module):
     def forward(self, x):
         x = self.actor_layer1_norm(torch.relu(self.actor_layer1(x)))
         if self.net_type == 'normal':
-            mean = self.actor_layer2_mean(x)
+            mean = torch.sigmoid(self.actor_layer2_mean(x))
             dist = Normal(loc=mean, scale=self.std_max)
             u = dist.sample()
             log_prob = dist.log_prob(u)
@@ -57,7 +57,7 @@ class Actor(nn.Module):
             x = self.actor_layer2_norm(torch.relu(self.actor_layer2(x)))
             prob = torch.softmax(self.out_layer(x), dim=-1)
             u = np.random.choice([i/self.output_size for i in range(self.output_size)], p=prob.detach().numpy())
-            log_prob = torch.log(prob)
+            log_prob = torch.log(prob[int(u * self.output_size)])
         else:
             sys.exit('Unrecognized')
         return u, log_prob
@@ -65,7 +65,7 @@ class Actor(nn.Module):
     def get_mean_std(self, x):
         x = torch.relu(self.actor_layer1(x))
         if self.net_type == 'normal':
-            mean = self.actor_layer2_mean(x)
+            mean = torch.sigmoid(self.actor_layer2_mean(x))
             std = self.std_max
             return mean, std
         elif self.net_type == 'softmax':
@@ -125,7 +125,7 @@ class ACPolicy(Policy):
         self.values.append(self.state_value)
         self.rewards.append(reward)
         self.reward_history.append(reward)
-        self.log_probs.append(self.log_prob[int(self.threshold * 10)])
+        self.log_probs.append(self.log_prob)
 
         [next_normalized_q_lengths, next_tokens] = next_state
         next_state_array = np.concatenate((next_normalized_q_lengths, next_tokens))

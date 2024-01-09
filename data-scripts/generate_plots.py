@@ -13,14 +13,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--agent_num', type=int)
     parser.add_argument('-s', '--sys', type=str, default=None)
+    parser.add_argument('-t', '--title', type=str, default='Random Load Balancer')
     args = parser.parse_args()
     system = args.sys
     agent_num = args.agent_num
+    title = args.title
 
-    # scheds = ['mtf', 'g_fair', 'rr', 'themis']
-    scheds = ['mtf', 'g_fair', 'rr']
+    scheds = ['mtf', 'g_fair', 'rr', 'themis']
+    # scheds = ['mtf', 'g_fair', 'rr']
     avgs = []
     plt.figure()
+    plt.title(title)
     subdir_sys = '/logs/{num}_{sys}_agents'
     if system is None:
         subdir_sys = '/logs/{num}_agents'
