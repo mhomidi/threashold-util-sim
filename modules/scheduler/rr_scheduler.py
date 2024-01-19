@@ -14,5 +14,5 @@ class RoundRobinScheduler(Scheduler):
             round_turn_starter %= self.num_agents
 
     def run_scheduler(self, iteration, demands):
-        self.assignments = np.roll(self.assignments, 1)
+        self.assignments = np.roll(self.assignments, 1, axis=1)
         return self.assignments, None

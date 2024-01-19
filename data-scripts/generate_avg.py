@@ -11,17 +11,12 @@ root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 def read_data(direct, file):
     data_file = os.path.join(direct, file)
     data = pd.read_csv(data_file).values
-    avgs = list()
-    for i in range(1, len(data)):
-        avgs.append(data[max(0, i - 100): i].mean())
-    data = np.array(avgs)
     plt.figure()
     plt.plot(data)
-    plt.savefig(os.path.join(direct, 'avg_utility.png'))
-    np.savetxt(os.path.join(direct, 'avg_utility.csv'),
-               data, fmt='%d', delimiter=',')
+    plt.savefig(os.path.join(direct, 'avg_utility.svg'))
+    plt.savefig(os.path.join(direct, 'avg_utility.pdf'))
     plt.close()
-    return avgs
+    return data[:, 0]
 
 
 if __name__ == '__main__':
@@ -39,10 +34,17 @@ if __name__ == '__main__':
             if file == 'utility.csv':
                 data.append(read_data(subdir, file))
     data = np.array(data).T
-    plt.plot(data.mean(axis=1))
-    plt.savefig(os.path.join(root, 'avg_util.png'))
+    mean = data.mean(axis=1)
+    std = data.std(axis=1)
+    plt.plot(mean)
+    plt.fill_between(range(len(data)), mean - std, mean + std, alpha=0.3)
+    plt.savefig(os.path.join(root, 'avg_util.svg'))
+    plt.savefig(os.path.join(root, 'avg_util.pdf'))
     np.savetxt(os.path.join(root, 'avg_util.csv'),
                data.mean(axis=1), fmt='%d', delimiter=',')
+
+    np.savetxt(os.path.join(root, 'std_util.csv'),
+               data.std(axis=1), fmt='%d', delimiter=',')
     plt.close()
 
 # /home/homidi/Desktop/research/projects/u-thr/scripts/../logs/20_agents/rr_sheduler/queue_q1

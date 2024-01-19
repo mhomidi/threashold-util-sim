@@ -22,6 +22,9 @@ project_src_path = os.path.dirname(os.path.abspath(__file__)) + "/../"
 def get_speed_up_factors(speed_ups, sp_weights, num_clusters, num_agents):
     ws = sp_weights / sp_weights.sum()
     sp_factors = np.random.choice(speed_ups, size=(num_agents, num_clusters), p=ws)
+    # sp_factors = np.ones((num_agents, num_clusters))
+    # sp_factors[:, 0:int(num_clusters * ws[0])] = speed_ups[0]
+    # sp_factors[:, int(num_clusters * ws[0]):] = speed_ups[1]
     return sp_factors
 
 

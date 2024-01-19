@@ -47,8 +47,8 @@ if __name__ == '__main__':
     plt.legend(['MTF', 'Gandiva_fair', 'RR'])
     plt.xlabel('$\phi$')
     plt.ylabel('Fraction of Agents')
-    plt.savefig(os.path.join(
-        root + '/logs/{num}_agents/'.format(num=args.agent_num), 'si.svg'))
+    plt.savefig(os.path.join(root + '/logs/{num}_agents/'.format(num=args.agent_num), 'si.svg'))
+    plt.savefig(os.path.join(root + '/logs/{num}_agents/'.format(num=args.agent_num), 'si.pdf'))
     plt.close()
 # /home/homidi/Desktop/research/projects/u-thr/scripts/../logs/20_agents/rr_sheduler/queue_q1
 # /home/homidi/Desktop/research/projects/u-thr/scripts/../logs/20_agents/rr_scheduler/queue_q1/

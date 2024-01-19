@@ -70,6 +70,7 @@ class QueueApplication(Application):
 
     def stop(self, path, id):
         data = np.array([self.queue_length_history, self.assignment_history,
-                        self.state_history, self.arrival_history, self.departure_history]).T
+                        self.state_history, self.arrival_history, self.departure_history,
+                        [self.departure_generator.rate for _ in range(len(self.departure_history))]]).T
         np.savetxt(path + "/app_" + str(id) + '.csv',
                    data, delimiter=',', fmt='%.2f')

@@ -53,6 +53,4 @@ class FinishTimeFairnessScheduler(Scheduler):
             raise Exception(problem.status)
         self.shared_queue_lengths = shared_queue_length.value
         allocation = np.array(x.value > 0.5, dtype=np.int8)
-        if iteration == 50:
-            print(allocation)
         return allocation, None

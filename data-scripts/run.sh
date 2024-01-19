@@ -1,30 +1,23 @@
 
-# curr=$PWD
-# echo $i
+CURR_DIR=$(dirname $0)
+# echo $CURR_DIR
+cd $CURR_DIR
+cd ..
 
-# if [$1 == "mtf"];
-# then
-# 	python $curr/test/test.py 1 0 0 0
-# elif [$1 == "g_fair"];
-# then
-# 	python $curr/test/test.py 1 0 1 1
-# elif [$1 == "rr"];
-# then
-# 	python $curr/test/test.py 1 0 1 2 
-# elif [$1 == "ftf"]; 
-# then
-# 	python $curr/test/test.py 1 0 2 3
-# fi
-# else
-	# python $curr/test/test.py 1 0 0 0
-	# python $curr/test/test.py 1 0 1 1
-	# python $curr/test/test.py 1 0 1 2
-	# python $curr/test/test.py 1 0 2 3
-# fi
+echo "==== MTF ===="
+python test/test.py 1 0 0 0 
+python data-scripts/generate_avg.py $1 mtf
 
+echo "==== GF ====="
+python test/test.py 1 0 1 1
+python data-scripts/generate_avg.py $1 g_fair
 
+echo "==== RR ====="
+python test/test.py 1 0 1 2
+python data-scripts/generate_avg.py $1 rr
 
-python $curr/test/test.py 1 0 0 0
-python $curr/test/test.py 1 0 1 1
-python $curr/test/test.py 1 0 1 2
-python $curr/test/test.py 1 0 2 3
+echo "==== FTF ===="
+python test/test.py 1 0 2 3
+python data-scripts/generate_avg.py $1 themis
+
+python data-scripts/generate_plots.py -n 20 -t "Power of Two Choices"

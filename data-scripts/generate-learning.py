@@ -26,14 +26,7 @@ if __name__ == '__main__':
         avgs.append(data)
         # plt.plot(data)
         all_data.append(data)
-
     all_data = np.array(all_data).T.reshape((3998, 20))[0:3000]
-    # plt.legend(labels)
-    # plt.xlabel('Iterations')
-    # plt.ylabel('Avg. Utility')
-    # plt.savefig(os.path.join(root + '/results', 'learning-user.svg'))
-    # plt.close()
-
     plt.figure()
     lb = all_data.mean(axis=1) - all_data.std(axis=1)
     ub = all_data.mean(axis=1) + all_data.std(axis=1)
