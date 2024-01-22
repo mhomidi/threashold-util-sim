@@ -18,6 +18,7 @@ def read_data(direct, file):
     plt.close()
     return data[:, 0]
 
+
 def main(agent_num, sched):
     main_path = root + '/logs/{num}_agents/{sched}_scheduler/queue_q1/'.format(
         num=agent_num, sched=sched)
@@ -33,8 +34,8 @@ def main(agent_num, sched):
     data_min = data.min(axis=1)
     data_max = data.max(axis=1)
     plt.plot(mean)
-    plt.fill_between(range(len(data)), mean - std, mean + std, alpha=0.3)
-    # plt.fill_between(range(len(data)), data_min, data_max, alpha=0.3)
+    # plt.fill_between(range(len(data)), mean - std, mean + std, alpha=0.3)
+    plt.fill_between(range(len(data)), data_min, data_max, alpha=0.3)
     plt.savefig(os.path.join(main_path, 'avg_util.svg'))
     plt.savefig(os.path.join(main_path, 'avg_util.pdf'))
     np.savetxt(os.path.join(main_path, 'avg_util.csv'),
@@ -46,7 +47,6 @@ def main(agent_num, sched):
 
 # /home/homidi/Desktop/research/projects/u-thr/scripts/../logs/20_agents/rr_sheduler/queue_q1
 # /home/homidi/Desktop/research/projects/u-thr/scripts/../logs/20_agents/rr_scheduler/queue_q1/
-
 
 
 if __name__ == '__main__':

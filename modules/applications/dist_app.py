@@ -35,7 +35,7 @@ class DistQueueApp(DistributedApplication):
             app.set_arrival(per_queue_arrivals[i])
             app.set_assignment(self.assignments[i])
             app.update_state(iteration)
-            self.utility -= app.get_current_queue_length()
+            self.utility += app.get_imm_throughput()
 
     def stop(self, path):
         super().stop(path)

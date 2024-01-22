@@ -1,9 +1,10 @@
 import random
+from modules.applications.dd_queue import DeadlineQueueApplication
 from modules.applications.queue import QueueApplication
 from modules.applications.dist_app import DistQueueApp
 from modules.utils.load_utils import *
 from utils.distribution import PoissonGenerator
-from modules.scheduler import ftf_scheduler, mtf_scheduler, g_fair_scheduler, rr_scheduler
+from modules.scheduler import ftf_scheduler, mtf_scheduler, g_fair_scheduler, rr_scheduler 
 from modules.coordination import Coordinator, Worker
 from modules.policies import ac_policy, ftf_policy, g_fair_policy, fixed_thr_policy
 from modules.agents import ac_agent, ftf_agent, g_fair_agent
@@ -26,7 +27,7 @@ def get_speed_up_factors(speed_ups, sp_weights, num_clusters, num_agents):
 
 
 def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters,
-                    agent_id, speed_up_factors, arr_rate_coeff):
+                    agent_id, speed_up_factors, arr_rate_coeff, queue_app_type, deadline):
     if app_type == "queue":
         arrival_tps = config["queue_app_arrival_tps"][app_sub_type] * arr_rate_coeff
         departure_tps = config["queue_app_departure_tps"][app_sub_type]
@@ -41,11 +42,15 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         else:
             raise Exception('Wrong load balancer type')
 
-        # TODO adjust arrival_tps
         arrival_gen = PoissonGenerator(arrival_tps)
         for j in range(num_clusters):
             depart_gen = PoissonGenerator(departure_tps * speed_up_factors[j])
-            app = QueueApplication(max_queue_length, depart_gen, alpha)
+            if queue_app_type == "without_deadline":
+                app = QueueApplication(max_queue_length, depart_gen, alpha)
+            elif queue_app_type == "with_deadline":
+                app = DeadlineQueueApplication(max_queue_length, depart_gen, alpha, deadline)
+            else:
+                raise Exception('Wrong queue app type type')
             apps.append(app)
 
         dist_app = DistQueueApp(agent_id, apps, arrival_gen, load_balancer)
@@ -87,7 +92,7 @@ def get_arrival_rate_coefficients(num_agents, agent_split_indices, arrival_rate_
     return agent_arr_coeff
 
 
-def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, weights=-1, n_agents=None, n_clusters=None):
+def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, weights=-1, n_agents=None, n_clusters=None, queue_app_type='wo_dd'):
     start_time = time.time()
     with open(config_file_name, 'r') as f:
         config = json.load(f)
@@ -95,6 +100,8 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     num_workers = config["num_workers"]
     num_agents = config["num_agents"]
     app_type = config["app_types"][app_type_id]
+    queue_app_type = config["queue_app_type"][queue_app_type]
+    deadline = config["deadline"]
     assert app_sub_type_id < len(config["app_sub_types"][app_type])
     app_sub_type = config["app_sub_types"][app_type][app_sub_type_id]
     policy_type = config["policy_types"][policy_id]
@@ -168,7 +175,8 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         if policy_type == "ac_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
+                app_type, app_sub_type, config, load_calculator, num_clusters,
+                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
             policy = ac_policy.ACPolicy(a_input_size=(num_agents + num_clusters), c_input_size=(num_agents + num_clusters),
                                         a_h1_size=a_h1_size, c_h1_size=c_h1_size, c_h2_size=c_h2_size,
                                         a_lr=ac_a_lr, c_lr=ac_c_lr, df=ac_discount_factor, std_max=std_max, num_clusters=num_clusters,
@@ -179,7 +187,8 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         elif policy_type == "thr_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
+                app_type, app_sub_type, config, load_calculator, num_clusters,
+                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
             threshold = threshold_in
             if threshold_in == -1:
                 threshold = config["threshold"][app_type][app_sub_type]
@@ -189,14 +198,16 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         elif policy_type == "g_fair_policy":
             load_calculator = GFairLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
+                app_type, app_sub_type, config, load_calculator, num_clusters,
+                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
             policy = g_fair_policy.GFairPolicy(num_clusters)
             agent = g_fair_agent.GFairAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy)
         elif policy_type == "themis_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
+                app_type, app_sub_type, config, load_calculator, num_clusters,
+                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
             policy = ftf_policy.ThemisPolicy(num_clusters)
             agent = ftf_agent.ThemisAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy)

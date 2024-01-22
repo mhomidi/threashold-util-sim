@@ -934,7 +934,7 @@
         "g_fair_scheduler",
         "rr_scheduler",
         "themis_scheduler",
-        "expected_scheduler",
+        "proportional_scheduler",
         "thr_policy"
     ],
     "policy_types": [
@@ -1032,11 +1032,11 @@
         3
     ],
     "arrival_rate_coefficient_of_classes": [
-        0.53,
-        1.37,
-        2.36
+        1.09,
+        2.19,
+        3.29
     ],
-    "num_iterations": 3000,
+    "num_iterations": 2000,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_alpha": 0.8,
@@ -1049,5 +1049,10 @@
         2
     ],
     "coordinator_step_print": 100,
-    "lb_type": "p2c"
+    "lb_type": "p2c",
+    "queue_app_type": {
+        "wo_dd": "without_deadline",
+        "dd": "with_deadline"
+    },
+    "deadline": 5
 }

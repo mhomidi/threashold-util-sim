@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('agent_num', type=int)
     args = parser.parse_args()
-    for sched in ['mtf', 'g_fair', 'rr']:
+    for sched in ['mtf', 'g_fair', 'themis']:
         path1 = root + '/logs/{num}_agents/{sched}_scheduler/queue_q1/'.format(
             num=args.agent_num, sched=sched)
         data_sh = []
