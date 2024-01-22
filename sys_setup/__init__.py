@@ -22,16 +22,13 @@ project_src_path = os.path.dirname(os.path.abspath(__file__)) + "/../"
 def get_speed_up_factors(speed_ups, sp_weights, num_clusters, num_agents):
     ws = sp_weights / sp_weights.sum()
     sp_factors = np.random.choice(speed_ups, size=(num_agents, num_clusters), p=ws)
-    # sp_factors = np.ones((num_agents, num_clusters))
-    # sp_factors[:, 0:int(num_clusters * ws[0])] = speed_ups[0]
-    # sp_factors[:, int(num_clusters * ws[0]):] = speed_ups[1]
     return sp_factors
 
 
 def create_dist_app(app_type, app_sub_type, config, load_calculator, num_clusters,
-                    agent_id, speed_up_factors):
+                    agent_id, speed_up_factors, arr_rate_coeff):
     if app_type == "queue":
-        arrival_tps = config["queue_app_arrival_tps"][app_sub_type]
+        arrival_tps = config["queue_app_arrival_tps"][app_sub_type] * arr_rate_coeff
         departure_tps = config["queue_app_departure_tps"][app_sub_type]
         max_queue_length = config["queue_app_max_queue_length"][app_sub_type]
         alpha = config["queue_app_alpha"]
@@ -57,6 +54,39 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
         sys.exit("Unknown app type: {}".format(app_type))
 
 
+def get_agent_split_indices(num_agents, agents_per_class: dict):
+    sum_agent_per_class = float(np.array(agents_per_class).sum())
+    index_agent_per_class = 0
+    indices = []
+    for val in agents_per_class:
+        index_agent_per_class += val
+        idx = index_agent_per_class / sum_agent_per_class
+        if len(indices) == 0 or idx != indices[-1]:
+            indices.append(int(index_agent_per_class / sum_agent_per_class * num_agents))
+    indices.pop()
+    return indices
+
+
+def get_agents_weights(num_agents, agent_split_indices, weight_of_classes):
+    agent_weights = np.ones(num_agents)
+    assert len(agent_split_indices) + 1 == len(weight_of_classes)
+    ids_weight_classes = np.split(
+        np.arange(0, num_agents), agent_split_indices)
+    for wc, wpc in zip(ids_weight_classes, weight_of_classes):
+        agent_weights[wc] *= wpc
+    return agent_weights
+
+
+def get_arrival_rate_coefficients(num_agents, agent_split_indices, arrival_rate_coefficient_of_classes):
+    agent_arr_coeff = np.ones(num_agents)
+    assert len(agent_split_indices) + 1 == len(arrival_rate_coefficient_of_classes)
+    ids_agent_coeffs = np.split(
+        np.arange(0, num_agents), agent_split_indices)
+    for ac, acc in zip(ids_agent_coeffs, arrival_rate_coefficient_of_classes):
+        agent_arr_coeff[ac] *= acc
+    return agent_arr_coeff
+
+
 def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, weights=-1, n_agents=None, n_clusters=None):
     start_time = time.time()
     with open(config_file_name, 'r') as f:
@@ -69,7 +99,6 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     app_sub_type = config["app_sub_types"][app_type][app_sub_type_id]
     policy_type = config["policy_types"][policy_id]
     scheduler_type = config["scheduler_types"][scheduler_id]
-    app_utilities = config["app_utilities"]
     coordinator_step_print = config["coordinator_step_print"]
     token_coefficient = config["token_coefficient"]
     num_clusters = config["num_clusters"]
@@ -88,19 +117,19 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     std_max = config['std_max'][app_type][app_sub_type]
     speed_ups = np.array(config['speed_ups'])
     sp_weights = np.array(config['sp_weights'])
+    agents_per_class = config["agents_per_class"]
+    weight_of_classes = config['weight_of_classes']
+    arrival_rate_coefficient_of_classes = config['arrival_rate_coefficient_of_classes']
 
-    agent_weights = np.ones(num_agents)
-    if weights == -1:
-        num_weight_classes = config["num_weight_classes"]
-        weight_per_class = config["weight_per_class"]
-        assert num_weight_classes == len(weight_per_class)
-        ids_weight_classes = np.split(
-            np.arange(0, num_agents), num_weight_classes)
-        for wc, wpc in zip(ids_weight_classes, weight_per_class):
-            agent_weights[wc] *= wpc
+    agent_split_indices = get_agent_split_indices(num_agents, agents_per_class)
 
+    agent_weights = get_agents_weights(num_agents, agent_split_indices, weight_of_classes)
     agent_weights /= agent_weights.sum()
+
     sp_factors = get_speed_up_factors(speed_ups, sp_weights, num_clusters, num_agents)
+
+    arr_rate_coeffs = get_arrival_rate_coefficients(
+        num_agents, agent_split_indices, arrival_rate_coefficient_of_classes)
 
     path = f"{folder_name}/logs/{num_agents}_agents/{scheduler_type}/{app_type}_{app_sub_type}"
     if not os.path.exists(path):
@@ -139,7 +168,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         if policy_type == "ac_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
             policy = ac_policy.ACPolicy(a_input_size=(num_agents + num_clusters), c_input_size=(num_agents + num_clusters),
                                         a_h1_size=a_h1_size, c_h1_size=c_h1_size, c_h2_size=c_h2_size,
                                         a_lr=ac_a_lr, c_lr=ac_c_lr, df=ac_discount_factor, std_max=std_max, num_clusters=num_clusters,
@@ -150,7 +179,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         elif policy_type == "thr_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
             threshold = threshold_in
             if threshold_in == -1:
                 threshold = config["threshold"][app_type][app_sub_type]
@@ -160,14 +189,14 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         elif policy_type == "g_fair_policy":
             load_calculator = GFairLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
             policy = g_fair_policy.GFairPolicy(num_clusters)
             agent = g_fair_agent.GFairAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy)
         elif policy_type == "themis_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf)
+                app_type, app_sub_type, config, load_calculator, num_clusters, agent_id, agent_spf, arr_rate_coeffs[agent_id])
             policy = ftf_policy.ThemisPolicy(num_clusters)
             agent = ftf_agent.ThemisAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy)

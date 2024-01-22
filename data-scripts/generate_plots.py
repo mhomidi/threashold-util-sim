@@ -8,23 +8,14 @@ import pandas as pd
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 
 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--agent_num', type=int)
-    parser.add_argument('-s', '--sys', type=str, default=None)
-    parser.add_argument('-t', '--title', type=str, default='Random Load Balancer')
-    parser.add_argument('-v', '--is_std', type=bool, default=True)
-    args = parser.parse_args()
-    system = args.sys
-    agent_num = args.agent_num
-    title = args.title
-    is_std = args.is_std
+def main(system, agent_num, title, is_std):
 
     # scheds = ['mtf', 'g_fair', 'rr', 'themis']
     # scheds = ['mtf', 'rr', 'themis']
     # scheds = ['mtf', 'g_fair', 'rr']
-    scheds = ['g_fair', 'mtf']
+    # scheds = ['g_fair', 'mtf']
+    scheds = ['g_fair', 'mtf', 'themis']
     # scheds = ['mtf', 'rr']
     colors = ['deepskyblue', 'orange', 'darkolivegreen', 'violet']
     means = []
@@ -61,3 +52,17 @@ if __name__ == '__main__':
     plt.savefig(os.path.join((root + subdir_sys).format(num=agent_num, sys=system), 'all_plot.pdf'))
 
     plt.close()
+
+if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n', '--agent_num', type=int)
+    parser.add_argument('-s', '--sys', type=str, default=None)
+    parser.add_argument('-t', '--title', type=str, default='Random Load Balancer')
+    parser.add_argument('-v', '--is_std', type=bool, default=True)
+    args = parser.parse_args()
+    system = args.sys
+    agent_num = args.agent_num
+    title = args.title
+    is_std = args.is_std
+    main(system, agent_num, title, is_std)

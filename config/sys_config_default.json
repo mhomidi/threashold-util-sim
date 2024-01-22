@@ -906,7 +906,7 @@
         ]
     },
     "queue_app_arrival_tps": {
-        "q1": 70,
+        "q1": 40,
         "q2": 43,
         "q3": 27,
         "q4": 12
@@ -918,7 +918,7 @@
         "q4": 7
     },
     "queue_app_departure_tps": {
-        "q1": 41,
+        "q1": 40,
         "q2": 44,
         "q3": 25,
         "q4": 11
@@ -1021,11 +1021,22 @@
     },
     "num_clusters": 40,
     "num_agents": 20,
-    "num_weight_classes": 1,
-    "weight_per_class": [
-        2
+    "agents_per_class": [
+        10,
+        5,
+        5
     ],
-    "num_iterations": 4000,
+    "weight_of_classes": [
+        1,
+        2,
+        3
+    ],
+    "arrival_rate_coefficient_of_classes": [
+        0.53,
+        1.37,
+        2.36
+    ],
+    "num_iterations": 3000,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_alpha": 0.8,
