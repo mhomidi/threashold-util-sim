@@ -1029,14 +1029,14 @@
     "weight_of_classes": [
         1,
         2,
-        3
+        4
     ],
     "arrival_rate_coefficient_of_classes": [
-        1.09,
-        2.19,
-        3.29
+        0.96,
+        1.92,
+        3.84
     ],
-    "num_iterations": 2000,
+    "num_iterations": 500,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_alpha": 0.8,

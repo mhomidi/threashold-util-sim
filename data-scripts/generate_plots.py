@@ -9,14 +9,7 @@ root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 
 
 
-def main(system, agent_num, title, is_std):
-
-    # scheds = ['mtf', 'g_fair', 'rr', 'themis']
-    # scheds = ['mtf', 'rr', 'themis']
-    # scheds = ['mtf', 'g_fair', 'rr']
-    # scheds = ['g_fair', 'mtf']
-    scheds = ['g_fair', 'mtf', 'themis']
-    # scheds = ['mtf', 'rr']
+def main(system, agent_num, title, is_std, scheds = ['g_fair', 'themis', 'mtf']):
     colors = ['deepskyblue', 'orange', 'darkolivegreen', 'violet']
     means = []
     stds = []
@@ -50,7 +43,7 @@ def main(system, agent_num, title, is_std):
     plt.ylabel('Avg. Utility')
     plt.savefig(os.path.join((root + subdir_sys).format(num=agent_num, sys=system), 'all_plot.svg'))
     plt.savefig(os.path.join((root + subdir_sys).format(num=agent_num, sys=system), 'all_plot.pdf'))
-
+    plt.savefig(os.path.join((root + subdir_sys).format(num=agent_num, sys=system), 'all_plot.png'))
     plt.close()
 
 if __name__ == '__main__':

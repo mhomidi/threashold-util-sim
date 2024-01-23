@@ -53,7 +53,7 @@ def create_dist_app(app_type, app_sub_type, config, load_calculator, num_cluster
                 raise Exception('Wrong queue app type type')
             apps.append(app)
 
-        dist_app = DistQueueApp(agent_id, apps, arrival_gen, load_balancer)
+        dist_app = DistQueueApp(agent_id, apps, arrival_gen, load_balancer, queue_app_type)
         return dist_app
     else:
         sys.exit("Unknown app type: {}".format(app_type))
@@ -92,7 +92,7 @@ def get_arrival_rate_coefficients(num_agents, agent_split_indices, arrival_rate_
     return agent_arr_coeff
 
 
-def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, weights=-1, n_agents=None, n_clusters=None, queue_app_type='wo_dd'):
+def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, queue_app_type='wo_dd'):
     start_time = time.time()
     with open(config_file_name, 'r') as f:
         config = json.load(f)
@@ -114,7 +114,6 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     a_h1_size = ac_policy_config['a_h1_size']
     c_h1_size = ac_policy_config['c_h1_size']
     c_h2_size = ac_policy_config['c_h2_size']
-    # TODO: Change it to max queue length
     threshold_steps = ac_policy_config['threshold_steps']
     actor_net_type = ac_policy_config['actor_net_type']
     mini_batch_size = ac_policy_config['mini_batch_size']

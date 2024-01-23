@@ -6,7 +6,7 @@ import numpy as np
 
 
 class DistQueueApp(DistributedApplication):
-    def __init__(self, app_id, applications, arrival_generator: Generator, load_balancer: LoadBalancer):
+    def __init__(self, app_id, applications, arrival_generator: Generator, load_balancer: LoadBalancer, queue_app_type='wo_dd'):
         super().__init__(app_id, applications)
         self.applications: list[QueueApplication]
         self.arrival_generator = arrival_generator
@@ -14,6 +14,7 @@ class DistQueueApp(DistributedApplication):
         self.loads = np.zeros(self.cluster_size)
         self.load_balancer = load_balancer
         self.assignments_history = list()
+        self.queue_app_type = queue_app_type
         # self.app_dep_rates = np.array([app.departure_generator.rate for app in self.applications])
 
     def update_dist_app(self, iteration, assignments):
@@ -35,7 +36,10 @@ class DistQueueApp(DistributedApplication):
             app.set_arrival(per_queue_arrivals[i])
             app.set_assignment(self.assignments[i])
             app.update_state(iteration)
-            self.utility += app.get_imm_throughput()
+            if self.queue_app_type == 'without_deadline':
+                self.utility -= app.get_current_queue_length()
+            elif self.queue_app_type == 'with_deadline':
+                self.utility += app.get_imm_throughput()
 
     def stop(self, path):
         super().stop(path)

@@ -11,8 +11,6 @@ class DeadlineQueueApplication(QueueApplication):
 
     def set_arrival(self, arrival):
         self.arrivals = np.roll(self.arrivals, 1)
-        # self.arrivals[0] = arrival
-        # self.queue_length = self.arrivals.sum()
         valid_arrivals = np.sum(self.arrivals) - self.arrivals[0]
         self.queue_length = min(self.queue_length, valid_arrivals)
         self.arrivals[0] = arrival
