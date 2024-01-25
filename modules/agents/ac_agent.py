@@ -25,6 +25,9 @@ class ACAgent(Agent):
         self.demands = self.policy.get_demands(new_state)
         self.demand_history.append(self.demands)
         return self.demands
+    
+    def get_extra(self):
+        return self.policy.get_threshold()
 
     def stop(self, path):
         super().stop(path)

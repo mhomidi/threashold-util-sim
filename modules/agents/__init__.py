@@ -23,6 +23,9 @@ class Agent:
     def set_extra(self, extra):
         return
 
+    def get_extra(self):
+        return None
+    
     def stop(self, path):
         self.dist_app.stop(path)
         self.policy.stop(path, self.agent_id)

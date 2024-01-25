@@ -1036,7 +1036,7 @@
         1.92,
         3.84
     ],
-    "num_iterations": 500,
+    "num_iterations": 300,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_alpha": 0.8,

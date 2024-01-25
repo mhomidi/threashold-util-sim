@@ -106,6 +106,9 @@ class ACPolicy(Policy):
         state_tensor = torch.tensor(state, dtype=torch.float32)
         self.threshold, self.log_prob = self.actor(state_tensor)
         return self.threshold.item()
+    
+    def get_threshold(self):
+        return self.threshold.item()
 
     def get_demands(self, state):
         [normalized_q_lengths, tokens] = state
@@ -113,7 +116,7 @@ class ACPolicy(Policy):
         threshold = self.get_new_threshold(state_array)
         self.thr_history.append(threshold)
         demands = normalized_q_lengths.copy()
-        demands[demands < threshold] = 0
+        # demands[demands < threshold] = 0
         # print(demands)
         return demands
 

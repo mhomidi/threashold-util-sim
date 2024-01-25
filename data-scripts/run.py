@@ -13,6 +13,7 @@ from sys_setup import main as setup_main, get_agent_split_indices, get_agents_we
 from hetero_avg import plot_per_sched
 from hetero_avg import plot_per_class
 from plot_welfare import plot_welfare
+from bar_plots import plot_average_plot_per_w
 
 sched_args = {
     'g_fair': [1, 0, 1, 1],
@@ -29,7 +30,7 @@ def do_sched(sched, config_file_path, config, queue_app_type, indices):
     avg_main(num_agents, sched)
     plot_per_sched(num_agents, sched, indices)
 
-def delete_folder(config, sched=None):
+def delete_folder(config, queue_app_type, sched=None):
     num_agents = config["num_agents"]
     
     if sched is None:
@@ -74,10 +75,10 @@ if __name__ == '__main__':
     scheds = list(sched_args.keys())
 
     if sched:
-        delete_folder(config, sched)
+        delete_folder(config, queue_app_type, sched)
         do_sched(sched, config_file_path, config, queue_app_type, indices)
     else:
-        delete_folder(config)
+        delete_folder(config, queue_app_type)
         for s in scheds:
             do_sched(s, config_file_path, config, queue_app_type, indices)
 
@@ -90,5 +91,4 @@ if __name__ == '__main__':
         ws = ws / ws.sum()
         ws = ws.reshape(1, num_agents)
         plot_welfare(num_agents, scheds, ws)
-        
-        
+        plot_average_plot_per_w(num_agents, indices)

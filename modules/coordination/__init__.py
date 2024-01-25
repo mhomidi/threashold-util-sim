@@ -16,9 +16,10 @@ class Worker:
         demands = np.zeros((self.agents_len, self.num_clusters))
         for i, agent in enumerate(self.agents):
             demands[i] = agent.demand
+        agents_extra_data = [None for _ in range(self.agents_len)]
 
         while True:
-            self.w2c_queue.put(demands)
+            self.w2c_queue.put([demands, agents_extra_data])
 
             info = self.c2w_queue.get()
             if info == 'stop':
@@ -31,6 +32,7 @@ class Worker:
             for i, agent in enumerate(self.agents):
                 agent.set_extra(extra)
                 demands[i] = agent.run_agent(iteration, assignments[i])
+                agents_extra_data[i] = agent.get_extra()
         print('Worker done')
         return
 
@@ -56,12 +58,14 @@ class Coordinator:
 
         for iteration in range(self.num_iterations):
             demands_array = np.zeros((self.num_agents, self.num_clusters))
-            more = np.zeros((self.num_agents, self.num_clusters))
+            agents_extra_data = []
             for q, ids in zip(self.w2c_queues, workers_agent_ids):
-                demands = q.get()
+                demands, agents_wokrer_extra_data = q.get()
                 demands_array[ids] = demands
+                agents_extra_data += agents_wokrer_extra_data
             start = time.time()
 
+            self.scheduler.update_scheduler(agents_extra_data)
             assignments, extra = self.scheduler.run_scheduler(
                 iteration, demands_array)
 

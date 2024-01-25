@@ -8,8 +8,15 @@ class MTFScheduler(Scheduler):
         self.tokens = np.zeros(self.num_agents)
         for i in range(0, self.num_agents):
             self.tokens[i] = self.agent_weights[i] * token_coefficient
+        self.thresholds = np.zeros((num_agents, 1))
+
+    def update_scheduler(self, data):
+        self.thresholds = np.array(data).reshape(self.num_agents, 1)
+        self.thresholds[self.thresholds == None] = 1.0
 
     def run_scheduler(self, iteration, demands: np.ndarray):
+        # token_demand = demands[demands > ]
+        token_demands = self.get_token_demands(demands)
         self.assignments = np.zeros((self.num_agents, self.num_clusters))
         gathered_tokens = 0
         tokens = self.tokens.copy()
@@ -17,16 +24,34 @@ class MTFScheduler(Scheduler):
             max_budget_agent_index = np.argmax(tokens)
             if tokens[max_budget_agent_index] == 0:
                 break
-            preferred_cluster = np.argmax(demands[max_budget_agent_index])
-            if demands[max_budget_agent_index, preferred_cluster] == 0:
+            preferred_cluster = np.argmax(token_demands[max_budget_agent_index])
+            if token_demands[max_budget_agent_index, preferred_cluster] == 0:
                 tokens[max_budget_agent_index] = 0
                 continue
             self.assignments[(max_budget_agent_index, preferred_cluster)] = 1
             tokens[max_budget_agent_index] -= 1
             self.tokens[max_budget_agent_index] -= 1
             gathered_tokens += 1
+            token_demands[:, preferred_cluster] = 0
             demands[:, preferred_cluster] = 0
-
+        
         weights = self.agent_weights / self.agent_weights.sum()
         self.tokens += weights * gathered_tokens
+        self.assign_remaining(demands)
         return self.assignments, self.tokens
+    
+    def get_token_demands(self, demands):
+        token_demands = demands.copy()
+        for row in range(demands.shape[0]):
+            token_demands[row, demands[row] < self.thresholds[row]] = 0.
+        return token_demands
+            
+
+    def assign_remaining(self, demands):
+        not_assigned_num = np.where(self.assignments.sum(axis=0) == 0)[0].sum()
+        random_agents = np.random.choice(range(self.num_agents), size=not_assigned_num, p=self.agent_weights)
+        for agent in random_agents:
+            preferred_cluster = np.argmax(demands[agent])
+            self.assignments[(agent, preferred_cluster)] = 1
+            demands[:, preferred_cluster] = 0
+        

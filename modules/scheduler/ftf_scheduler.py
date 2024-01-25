@@ -22,13 +22,13 @@ class FinishTimeFairnessScheduler(Scheduler):
         self.actual_arrivals = np.zeros((self.num_agents, self.num_clusters))
 
     # TODO: for now, do not call this function anywhere
-    def update_scheduler(self, data):
-        self.departure_rates, self.arrival_rates = data
-        weights = self.agent_weights / self.agent_weights.sum()
-        exclusive_departure_rates = self.departure_rates.sum(axis=1) * weights
-        exclusive_utilization = self.arrival_rates / exclusive_departure_rates
-        assert np.max(exclusive_utilization) < 1
-        self.exclusive_q_lengths = exclusive_utilization / (1 - exclusive_utilization)
+    # def update_scheduler(self, data):
+    #     self.departure_rates, self.arrival_rates = data
+    #     weights = self.agent_weights / self.agent_weights.sum()
+    #     exclusive_departure_rates = self.departure_rates.sum(axis=1) * weights
+    #     exclusive_utilization = self.arrival_rates / exclusive_departure_rates
+    #     assert np.max(exclusive_utilization) < 1
+    #     self.exclusive_q_lengths = exclusive_utilization / (1 - exclusive_utilization)
 
     def run_scheduler(self, iteration, demands) -> list:
         ones_c = np.ones(self.num_clusters)
@@ -42,8 +42,7 @@ class FinishTimeFairnessScheduler(Scheduler):
 
         exc_q_lengths = ones_ac * self.exclusive_q_lengths
         constraints = [
-            cp.sum(x, axis=0) == ones_c,
-            # demands >= shared_departure_rates,
+            cp.sum(x, axis=0) <= ones_c,
             rho * ones_ac >= shared_queue_length / exc_q_lengths
         ]
         objective = cp.Minimize(rho)
