@@ -1,5 +1,6 @@
 
 import argparse
+import json
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,9 +20,10 @@ def read_data(direct, file):
     return data[:, 0]
 
 
-def main(agent_num, sched):
-    main_path = root + '/logs/{num}_agents/{sched}_scheduler/queue_q1/'.format(
-        num=agent_num, sched=sched)
+def main(agent_num, sched, c_num, util, weights_text, dd=None):
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}/{sched}_scheduler/queue_q1/'
+    if dd is not None:
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q1/'
     data = []
     for subdir, dirs, files in os.walk(main_path):
         for file in files:
@@ -50,8 +52,25 @@ def main(agent_num, sched):
 
 
 if __name__ == '__main__':
+    
     parser = argparse.ArgumentParser()
-    parser.add_argument('agent_num', type=int)
-    parser.add_argument('sched', type=str)
+    scheds = ['g_fair', 'themis', 'mtf']
+    parser.add_argument('-n', '--agent_num', type=int, default=20)
+    parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
+    parser.add_argument('-c', '--num_clusters', type=int, default=40)
+    parser.add_argument('-w', '--weights', type=str, default='124')
+    parser.add_argument('-u', '--util', type=str, default='80')
+    parser.add_argument('-d', '--deadline', type=str, default=None)
+    parser.add_argument('-s', '--sched', type=str, default='mtf')
     args = parser.parse_args()
-    main(args.agent_num, args.sched)
+    sched = args.sched
+    agent_num, indices, c_num, queue_util, weight_text, dd= args.agent_num, args.indices, args.num_clusters, args.util, args.weights, args.deadline
+    
+    config_file_path = root + "/config/sys_config_default.json"
+    with open(config_file_path, 'r') as f:
+        config = json.load(f)
+    classes = config['weight_of_classes']
+    scheds = ['g_fair', 'themis', 'mtf']
+
+
+    main(agent_num, sched, c_num, queue_util, weight_text, dd)

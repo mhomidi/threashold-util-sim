@@ -30,12 +30,14 @@ def read_data(direct, file, indices):
         count += 1
     return data[:, 0], group
 
-def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title):
-    colors = ['deepskyblue', 'orange', 'darkolivegreen', 'violet']
+def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title, c_num, queue_util, weights_text, dd=None):
+    colors = ['purple', 'orange', 'green']
     res = dict()
     for sched in scheds:
-        main_path = root + '/logs/{num}_agents/{sched}_scheduler/queue_q1/'.format(
-            num=agent_num, sched=sched)
+        
+        main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}/{sched}_scheduler/queue_q1/'
+        if dd is not None:
+            main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q1/'
         if indices is None:
             data = [[]]
         else:
@@ -49,7 +51,7 @@ def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title):
                     data[g].append(d)
         res[sched] = data[a_class_index]
     plt.figure()
-    plt.title(title)
+    plt.ylabel(title)
     legs = []
     for idx, key in enumerate(res.keys()):
         d = np.array(res[key]).T
@@ -61,7 +63,7 @@ def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title):
         pop_a = mpatches.Patch(color=colors[idx], label=scheds[idx])
         legs.append(pop_a)
     plt.legend(handles=legs)
-    main_path = root + '/logs/{num}_agents/'.format(num=agent_num)
+    main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}/'
     filename = 'classes_utils_{c}'.format(c=a_class)
     plt.savefig(os.path.join(main_path, filename + '.svg'))
     plt.savefig(os.path.join(main_path, filename + '.pdf'))
@@ -69,10 +71,11 @@ def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title):
     plt.close()
         
 
-def plot_per_sched(agent_num, sched, indices):
+def plot_per_sched(agent_num, sched, indices, c_num, util, weights_text, dd=None):
     legs = ['w=1', 'w=2', 'w=3']
-    main_path = root + '/logs/{num}_agents/{sched}_scheduler/queue_q1/'.format(
-        num=agent_num, sched=sched)
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}/{sched}_scheduler/queue_q1/'
+    if dd is not None:
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q1/'
     if indices is None:
         data = [[]]
     else:
@@ -85,7 +88,7 @@ def plot_per_sched(agent_num, sched, indices):
                 d, g = read_data(subdir, file, indices)
                 data[g].append(d)
     plt.figure()
-    plt.title('Average Accumulated Queue Length for Agnet Classes')
+    plt.ylabel('Average Throughput')
     for item in data:
         m = np.array(item).T.mean(axis=1)
         plt.plot(m)
@@ -101,14 +104,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     scheds = ['g_fair', 'themis', 'mtf']
     parser.add_argument('-n', '--agent_num', type=int, default=20)
-    parser.add_argument('-s', '--sched', type=str, default='mtf')
     parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
+    parser.add_argument('-c', '--num_clusters', type=int, default=40)
+    parser.add_argument('-w', '--weights', type=str, default='124')
+    parser.add_argument('-u', '--util', type=str, default='80')
+    parser.add_argument('-v', '--is_std', type=bool, default=True)
+    parser.add_argument('-d', '--deadline', type=str, default=None)
+    parser.add_argument('-s', '--sched', type=str, default='mtf')
     parser.add_argument('-f', '--func', type=str, default='per_sched')
     parser.add_argument('-ac', '--agent_class', type=int, default=1)
+    parser.add_argument('-ci', '--class_index', type=int, default=0)
     parser.add_argument('-tt', '--title', type=str, default='No Title')
     args = parser.parse_args()
-    agent_num, sched, indices, func, a_class, title = args.agent_num, args.sched, args.indices, args.func, args.agent_class, args.title
+    title = args.title
+    func = args.func
+    agent_class = args.agent_class
+    sched = args.sched
+    class_index = args.class_index
+    agent_num, indices, c_num, queue_util, weight_text, dd= args.agent_num, args.indices, args.num_clusters, args.util, args.weights, args.deadline
+    
     if func == 'per_sched':
-        plot_per_sched(agent_num, sched, indices)
+        plot_per_sched(agent_num, sched, indices, c_num, queue_util, weight_text, dd)
     if func == 'per_class':
-        plot_per_class(agent_num, indices, a_class, scheds, title)
+        plot_per_class(agent_num, indices, class_index, agent_class, scheds, title, c_num, queue_util, weight_text, dd)

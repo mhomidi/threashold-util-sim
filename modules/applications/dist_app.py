@@ -29,7 +29,6 @@ class DistQueueApp(DistributedApplication):
         self.arrival_history.append(arrivals)
         app_dep_rates = np.array([app.departure_generator.rate for app in self.applications])
         per_queue_arrivals = self.load_balancer.balance_load(arrivals, current_queue_lengths, app_dep_rates)
-
         self.utility = 0
         for i, app in enumerate(self.applications):
             app: QueueApplication

@@ -136,8 +136,12 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
 
     arr_rate_coeffs = get_arrival_rate_coefficients(
         num_agents, agent_split_indices, arrival_rate_coefficient_of_classes)
+    
 
-    path = f"{folder_name}/logs/{num_agents}_agents/{scheduler_type}/{app_type}_{app_sub_type}"
+    util = config["queue_util"]
+    classes = config['weight_of_classes']
+    weights_text = "".join([str(item) for item in classes])
+    path = f"{folder_name}/logs/{num_agents}-{num_clusters}-{util}util-{weights_text}/{scheduler_type}/{app_type}_{app_sub_type}"
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -159,6 +163,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     elif scheduler_type == "themis_scheduler":
         departure_rates = sp_factors * config['queue_app_departure_tps'][app_sub_type]
         arrival_rates = np.ones((num_agents, 1)) * config['queue_app_arrival_tps'][app_sub_type]
+        arrival_rates = arrival_rates * arr_rate_coeffs.reshape((num_agents, 1))
         scheduler = ftf_scheduler.FinishTimeFairnessScheduler(
             agent_weights, num_agents, num_clusters, departure_rates, arrival_rates)
     else:

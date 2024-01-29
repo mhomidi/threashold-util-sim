@@ -1,4 +1,5 @@
 
+import argparse
 import json
 import os, sys
 from matplotlib import patches
@@ -18,17 +19,15 @@ legends = []
 
 
 def read_data(direct, file):
-    # res = []
     data_file = os.path.join(direct, file)
     data = pd.read_csv(data_file).values
-    # for idx, datum in enumerate(data):
-    #     res.append(datum[min(0, idx - 50), idx])
     return data[:, 0]
 
 
-def scheduler_welfare_plot_d(agent_num, sched, weights, color):
-    main_path = root + '/logs/{num}_agents/{sched}_scheduler/queue_q1/'.format(
-        num=agent_num, sched=sched)
+def scheduler_welfare_plot_d(agent_num, sched, weights, color, c_num, util, weight_text, dd=None):
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/{sched}_scheduler/queue_q1/'
+    if dd is not None:
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/{sched}_scheduler/queue_q1/'
     data = []
     for subdir, dirs, files in os.walk(main_path):
         for file in files:
@@ -49,11 +48,10 @@ def scheduler_welfare_plot_d(agent_num, sched, weights, color):
     pop_a = patches.Patch(color=color, label=sched)
     legends.append(pop_a)
     
-
-
-def scheduler_welfare_plot_b(agent_num, sched, weights):
-    main_path = root + '/logs/{num}_agents/{sched}_scheduler/queue_q1/'.format(
-        num=agent_num, sched=sched)
+def scheduler_welfare_plot_b(agent_num, sched, weights, c_num, util, weight_text, dd=None):
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/{sched}_scheduler/queue_q1/'
+    if dd is not None:
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/{sched}_scheduler/queue_q1/'
     data = []
     for subdir, dirs, files in os.walk(main_path):
         for file in files:
@@ -61,9 +59,7 @@ def scheduler_welfare_plot_b(agent_num, sched, weights):
                 data.append(read_data(subdir, file))
     data = np.array(data).T * weights
     data = data.sum(axis=1)
-    return data[-50:].mean()
-    
-    
+    return data[-50:].mean(), data[-50:].std()
 
 def d_save_files(main_path):
     plt.legend(handles=legends)
@@ -80,38 +76,61 @@ def b_save_files(main_path):
     plt.savefig(os.path.join(main_path, 'b_welfare.png'))
     plt.close()
     
-def plot_welfare(agent_num, scheds, weights):
+def save_data(main_path, means, stds):
+    data = np.array([means, stds]).T
+    np.savetxt(os.path.join(main_path, 'welfare_data.csv'),
+               data, fmt='%.2f', delimiter=',')
+
+def plot_welfare(agent_num, scheds, weights, c_num, util, weight_text, dd=None):
     plt.figure()
-    plt.title('Social Welfare')
-    plt.ylabel('Weighted Average')
+    plt.ylabel('Weighted Social Welfare')
     for idx, sched in enumerate(scheds):
-        scheduler_welfare_plot_d(agent_num, sched, weights, colors[idx])
-    main_path = root + f'/logs/{agent_num}_agents'
+        scheduler_welfare_plot_d(agent_num, sched, weights, colors[idx], c_num, util, weight_text, dd)
+
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/'
+    if dd is not None:
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/'
     d_save_files(main_path)
     
     plt.figure()
-    plt.title('Social Welfare')
-    plt.ylabel('Weighted Average')
-    bar_vals = []
+    plt.ylabel('Weighted Social Welfare')
+    means = []
+    stds = []
     for idx, sched in enumerate(scheds):
-        bar_vals.append(scheduler_welfare_plot_b(agent_num, sched, weights))
-    main_path = root + f'/logs/{agent_num}_agents'
-    plt.bar(scheds, bar_vals)
+        mean, std = scheduler_welfare_plot_b(agent_num, sched, weights, c_num, util, weight_text, dd)
+        means.append(mean)
+        stds.append(std)
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/'
+    if dd is not None:
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/'
+    plt.bar(scheds, means, color=colors)
     b_save_files(main_path)
+    save_data(main_path, means, stds)
     
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser()
+    scheds = ['g_fair', 'themis', 'mtf']
+    parser.add_argument('-n', '--agent_num', type=int, default=20)
+    parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
+    parser.add_argument('-c', '--num_clusters', type=int, default=40)
+    parser.add_argument('-w', '--weights', type=str, default='124')
+    parser.add_argument('-u', '--util', type=str, default='80')
+    parser.add_argument('-d', '--deadline', type=str, default=None)
+    args = parser.parse_args()
+    num_agents, indices, c_num, queue_util, weight_text, dd= args.agent_num, args.indices, args.num_clusters, args.util, args.weights, args.deadline
+    
     config_file_path = root + "/config/sys_config_default.json"
     with open(config_file_path, 'r') as f:
         config = json.load(f)
-        
-    num_agents = config["num_agents"]
-    agents_per_class = config['agents_per_class']
-    indices = get_agent_split_indices(num_agents, agents_per_class)
     classes = config['weight_of_classes']
     scheds = ['g_fair', 'themis', 'mtf']
     
+    if indices is None:
+        indices = get_agent_split_indices(num_agents, classes)
     ws = get_agents_weights(num_agents, indices, classes)
     ws = ws / ws.sum()
     ws = ws.reshape(1, num_agents)
-    plot_welfare(num_agents, scheds, ws)
+    plot_welfare(num_agents, scheds, ws, c_num, queue_util, weight_text, dd)
+

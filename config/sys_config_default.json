@@ -1019,24 +1019,19 @@
         "threshold_steps": 20,
         "actor_net_type": "softmax"
     },
-    "num_clusters": 40,
-    "num_agents": 20,
+    "num_clusters": 10,
+    "num_agents": 5,
     "agents_per_class": [
-        10,
-        5,
         5
     ],
     "weight_of_classes": [
-        1,
-        2,
-        4
+        1
     ],
     "arrival_rate_coefficient_of_classes": [
-        0.96,
-        1.92,
-        3.84
+        1.92
     ],
-    "num_iterations": 300,
+    "queue_util": "80",
+    "num_iterations": 1000,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_alpha": 0.8,
