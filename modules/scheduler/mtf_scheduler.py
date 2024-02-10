@@ -22,7 +22,7 @@ class MTFScheduler(Scheduler):
         tokens = self.tokens.copy()
         while gathered_tokens < self.num_clusters:
             max_budget_agent_index = np.argmax(tokens)
-            if tokens[max_budget_agent_index] == 0:
+            if tokens[max_budget_agent_index] < 1:
                 break
             preferred_cluster = np.argmax(token_demands[max_budget_agent_index])
             if token_demands[max_budget_agent_index, preferred_cluster] == 0:
@@ -32,8 +32,8 @@ class MTFScheduler(Scheduler):
             tokens[max_budget_agent_index] -= 1
             self.tokens[max_budget_agent_index] -= 1
             gathered_tokens += 1
-            token_demands[:, preferred_cluster] = 0
-            demands[:, preferred_cluster] = 0
+            token_demands[:, preferred_cluster] = -1
+            demands[:, preferred_cluster] = -1
         
         weights = self.agent_weights / self.agent_weights.sum()
         self.tokens += weights * gathered_tokens
@@ -46,11 +46,16 @@ class MTFScheduler(Scheduler):
             token_demands[row, demands[row] < self.thresholds[row]] = 0.
         return token_demands
 
-    def assign_remaining(self, demands):
-        not_assigned_num = np.where(self.assignments.sum(axis=0) == 0)[0].sum()
+    def assign_remaining_e(self, demands):
+        not_assigned_num = self.num_clusters - self.assignments.sum()
         random_agents = np.random.choice(range(self.num_agents), size=not_assigned_num, p=self.agent_weights)
         for agent in random_agents:
             preferred_cluster = np.argmax(demands[agent])
             self.assignments[(agent, preferred_cluster)] = 1
-            demands[:, preferred_cluster] = 0
-        
+            demands[:, preferred_cluster] = -1
+
+    def assign_remaining_r(self):
+        not_assigned = np.arange(self.num_clusters)[self.assignments.sum(axis=0) == 0]
+        for i in not_assigned:
+            agent = np.random.choice(range(self.num_agents), p=self.agent_weights)
+            self.assignments[(agent, i)] = 1
