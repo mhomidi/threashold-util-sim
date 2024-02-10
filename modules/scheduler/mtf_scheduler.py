@@ -45,7 +45,6 @@ class MTFScheduler(Scheduler):
         for row in range(demands.shape[0]):
             token_demands[row, demands[row] < self.thresholds[row]] = 0.
         return token_demands
-            
 
     def assign_remaining(self, demands):
         not_assigned_num = np.where(self.assignments.sum(axis=0) == 0)[0].sum()
