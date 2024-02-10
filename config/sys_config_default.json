@@ -932,7 +932,7 @@
     "scheduler_types": [
         "mtf_scheduler",
         "g_fair_scheduler",
-        "rr_scheduler",
+        "wrr_scheduler",
         "themis_scheduler",
         "proportional_scheduler",
         "thr_policy"

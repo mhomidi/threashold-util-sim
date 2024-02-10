@@ -4,10 +4,12 @@ from modules.applications.queue import QueueApplication
 from modules.applications.dist_app import DistQueueApp
 from modules.utils.load_utils import *
 from utils.distribution import PoissonGenerator
-from modules.scheduler import mtf_scheduler, g_fair_scheduler, rr_scheduler, themis_scheduler 
+from modules.scheduler import mtf_scheduler, g_fair_scheduler, wrr_scheduler, themis_scheduler
 from modules.coordination import Coordinator, Worker
-from modules.policies import ac_policy, ftf_policy, g_fair_policy, fixed_thr_policy
-from modules.agents import ac_agent, ftf_agent, g_fair_agent
+from modules.policies import ac_policy
+from modules.policies import Policy
+from modules.agents import ac_agent
+from modules.agents import Agent
 import time
 import json
 import numpy as np
@@ -125,12 +127,15 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     sp_weights = np.array(config['sp_weights'])
     agents_per_class = config["agents_per_class"]
     weight_of_classes = config['weight_of_classes']
+    for w in weight_of_classes:
+        assert(isinstance(w, int))
     arrival_rate_coefficient_of_classes = config['arrival_rate_coefficient_of_classes']
     themis_type = config['themis_type'][themis_type_id]
 
     agent_split_indices = get_agent_split_indices(num_agents, agents_per_class)
 
     agent_weights = get_agents_weights(num_agents, agent_split_indices, weight_of_classes)
+    non_normalized_agent_weights = agent_weights
     agent_weights /= agent_weights.sum()
 
     sp_factors = get_speed_up_factors(speed_ups, sp_weights, num_clusters, num_agents)
@@ -158,9 +163,9 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     elif scheduler_type == "g_fair_scheduler":
         scheduler = g_fair_scheduler.GFairScheduler(
             agent_weights, num_agents, num_clusters)
-    elif scheduler_type == "rr_scheduler":
-        scheduler = rr_scheduler.RoundRobinScheduler(
-            agent_weights, num_agents, num_clusters)
+    elif scheduler_type == "wrr_scheduler":
+        scheduler = wrr_scheduler.WeightedRoundRobinScheduler(
+            non_normalized_agent_weights, num_agents, num_clusters)
     elif scheduler_type == "themis_scheduler":
         departure_rates = sp_factors * config['queue_app_departure_tps'][app_sub_type]
         arrival_rates = np.ones((num_agents, 1)) * config['queue_app_arrival_tps'][app_sub_type]
@@ -171,8 +176,10 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         elif themis_type == 'throughput':
             scheduler = themis_scheduler.ThroughputFairScheduler(
                 agent_weights, num_agents, num_clusters, departure_rates, arrival_rates)
+        else:
+            sys.exit("Unknown themis scheduler type!")
     else:
-        sys.exit("unknown scheduler type")
+        sys.exit("unknown scheduler type!")
 
     coordinator = Coordinator(scheduler, num_iterations, num_agents,
                               num_clusters, num_workers, w2c_queues, c2w_queues, coordinator_step_print)
@@ -193,33 +200,39 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
                                         actor_net_type=actor_net_type)
             agent = ac_agent.ACAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
-        elif policy_type == "thr_policy":
-            load_calculator = ExpectedWaitTimeLoadCalculator()
-            dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_clusters,
-                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
-            threshold = threshold_in
-            if threshold_in == -1:
-                threshold = config["threshold"][app_type][app_sub_type]
-            policy = fixed_thr_policy.FixedThrPolicy(num_clusters, threshold)
-            agent = ac_agent.ACAgent(
-                agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
+        # elif policy_type == "thr_policy":
+        #     load_calculator = ExpectedWaitTimeLoadCalculator()
+        #     dist_app = create_dist_app(
+        #         app_type, app_sub_type, config, load_calculator, num_clusters,
+        #         agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
+        #     threshold = threshold_in
+        #     if threshold_in == -1:
+        #         threshold = config["threshold"][app_type][app_sub_type]
+        #     policy = fixed_thr_policy.FixedThrPolicy(num_clusters, threshold)
+        #     agent = ac_agent.ACAgent(
+        #         agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
         elif policy_type == "g_fair_policy":
+            # TODO: check ExpectedWaitTimeLoadCalculator()
             load_calculator = GFairLoadCalculator()
             dist_app = create_dist_app(
                 app_type, app_sub_type, config, load_calculator, num_clusters,
                 agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
-            policy = g_fair_policy.GFairPolicy(num_clusters)
-            agent = g_fair_agent.GFairAgent(
-                agent_id, agent_weights[agent_id], dist_app, policy)
+            policy = Policy(num_clusters)
+            agent = Agent(agent_id, agent_weights[agent_id], dist_app, policy)
         elif policy_type == "themis_policy":
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
                 app_type, app_sub_type, config, load_calculator, num_clusters,
                 agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
-            policy = ftf_policy.ThemisPolicy(num_clusters)
-            agent = ftf_agent.ThemisAgent(
-                agent_id, agent_weights[agent_id], dist_app, policy)
+            policy = Policy(num_clusters)
+            agent = Agent(agent_id, agent_weights[agent_id], dist_app, policy)
+        elif policy_type == "wrr_policy":
+            load_calculator = ExpectedWaitTimeLoadCalculator()
+            dist_app = create_dist_app(
+                app_type, app_sub_type, config, load_calculator, num_clusters,
+                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
+            policy = Policy(num_clusters)
+            agent = Agent(agent_id, agent_weights[agent_id], dist_app, policy)
         else:
             sys.exit("Unknown policy type!")
 

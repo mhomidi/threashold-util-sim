@@ -10,12 +10,15 @@ class Agent:
         self.weight = weight
         self.dist_app = distributed_app
         self.policy = policy
-        self.demands = np.zeros(self.cluster_size)
+        self.demand = self.policy.get_demands(self.dist_app.get_customized_state())
         self.assignments = np.zeros(self.cluster_size)
         self.demand_history = list()
 
     def run_agent(self, iteration, assignments):
-        raise NotImplementedError
+        self.dist_app.update_dist_app(iteration, assignments)
+        new_state = self.dist_app.get_customized_state()
+        self.demand = self.policy.get_demands(new_state)
+        return self.demand
 
     def get_weight(self):
         return self.weight

@@ -5,13 +5,13 @@ class Policy:
 
     # get_demand should return preferences for GPUs
     def get_demands(self, state):
-        raise NotImplementedError
+        return state
 
     def update_policy(self, old_state, action, reward, new_state):
-        raise NotImplementedError
+        return
 
     def printable_action(self, state):
-        raise NotImplementedError
+        return 0
 
     def stop(self, path, agent_id):
-        raise NotImplementedError
+        return
