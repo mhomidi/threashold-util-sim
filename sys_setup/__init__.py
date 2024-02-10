@@ -4,7 +4,7 @@ from modules.applications.queue import QueueApplication
 from modules.applications.dist_app import DistQueueApp
 from modules.utils.load_utils import *
 from utils.distribution import PoissonGenerator
-from modules.scheduler import ftf_scheduler, mtf_scheduler, g_fair_scheduler, rr_scheduler 
+from modules.scheduler import mtf_scheduler, g_fair_scheduler, rr_scheduler, themis_scheduler 
 from modules.coordination import Coordinator, Worker
 from modules.policies import ac_policy, ftf_policy, g_fair_policy, fixed_thr_policy
 from modules.agents import ac_agent, ftf_agent, g_fair_agent
@@ -92,7 +92,7 @@ def get_arrival_rate_coefficients(num_agents, agent_split_indices, arrival_rate_
     return agent_arr_coeff
 
 
-def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, queue_app_type='wo_dd'):
+def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, queue_app_type='wo_dd', themis_type_id=1):
     start_time = time.time()
     with open(config_file_name, 'r') as f:
         config = json.load(f)
@@ -126,6 +126,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     agents_per_class = config["agents_per_class"]
     weight_of_classes = config['weight_of_classes']
     arrival_rate_coefficient_of_classes = config['arrival_rate_coefficient_of_classes']
+    themis_type = config['themis_type'][themis_type_id]
 
     agent_split_indices = get_agent_split_indices(num_agents, agents_per_class)
 
@@ -164,8 +165,12 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         departure_rates = sp_factors * config['queue_app_departure_tps'][app_sub_type]
         arrival_rates = np.ones((num_agents, 1)) * config['queue_app_arrival_tps'][app_sub_type]
         arrival_rates = arrival_rates * arr_rate_coeffs.reshape((num_agents, 1))
-        scheduler = ftf_scheduler.FinishTimeFairnessScheduler(
-            agent_weights, num_agents, num_clusters, departure_rates, arrival_rates)
+        if themis_type == 'queue_length':
+            scheduler = themis_scheduler.QLengthFairScheduler(
+                agent_weights, num_agents, num_clusters, departure_rates, arrival_rates)
+        elif themis_type == 'throughput':
+            scheduler = themis_scheduler.ThroughputFairScheduler(
+                agent_weights, num_agents, num_clusters, departure_rates, arrival_rates)
     else:
         sys.exit("unknown scheduler type")
 

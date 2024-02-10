@@ -37,7 +37,8 @@ class MTFScheduler(Scheduler):
         
         weights = self.agent_weights / self.agent_weights.sum()
         self.tokens += weights * gathered_tokens
-        self.assign_remaining(demands)
+        # self.assign_remaining_e(demands)
+        self.assign_remaining_r()
         return self.assignments, self.tokens
     
     def get_token_demands(self, demands):
@@ -47,7 +48,7 @@ class MTFScheduler(Scheduler):
         return token_demands
 
     def assign_remaining_e(self, demands):
-        not_assigned_num = self.num_clusters - self.assignments.sum()
+        not_assigned_num = self.num_clusters - self.assignments.sum(dtype=np.int32)
         random_agents = np.random.choice(range(self.num_agents), size=not_assigned_num, p=self.agent_weights)
         for agent in random_agents:
             preferred_cluster = np.argmax(demands[agent])

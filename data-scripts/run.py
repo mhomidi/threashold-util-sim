@@ -24,7 +24,7 @@ sched_args = {
 def do_sched(sched, config_file_path, config, queue_app_type, indices):
     num_agents = config["num_agents"]
     c_num = config["num_clusters"]
-    util = config["queue_util"]
+    queue_util = config["queue_util"]
     classes = config['weight_of_classes']
     weights_text = "".join([str(item) for item in classes])
 

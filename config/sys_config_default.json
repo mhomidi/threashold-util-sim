@@ -1019,19 +1019,26 @@
         "threshold_steps": 20,
         "actor_net_type": "softmax"
     },
-    "num_clusters": 10,
-    "num_agents": 5,
+    "num_clusters": 40,
+    "num_agents": 20,
     "agents_per_class": [
+        10,
+        5,
         5
     ],
     "weight_of_classes": [
-        1
+        1,
+        2,
+        4
     ],
     "arrival_rate_coefficient_of_classes": [
-        1.92
+        0.96,
+        1.92,
+        3.84
     ],
     "queue_util": "80",
-    "num_iterations": 1000,
+    "num_iterations": 300,
+    "coordinator_step_print": 100,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_alpha": 0.8,
@@ -1043,11 +1050,14 @@
         3,
         2
     ],
-    "coordinator_step_print": 100,
     "lb_type": "p2c",
     "queue_app_type": {
         "wo_dd": "without_deadline",
         "dd": "with_deadline"
     },
-    "deadline": 5
+    "deadline": 5,
+    "themis_type": [
+        "queue_length",
+        "throughput"
+    ]
 }
