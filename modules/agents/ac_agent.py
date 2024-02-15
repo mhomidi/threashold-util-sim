@@ -22,9 +22,9 @@ class ACAgent(Agent):
         reward = self.dist_app.get_utility()
         new_state = [self.dist_app.get_normalized_state(), self.tokens]
         self.policy.update_policy(old_state, self.demands, reward, new_state)
-        self.demands = self.policy.get_demands(new_state)
-        self.demand_history.append(self.demands)
-        return self.demands
+        self.demand = self.policy.get_demands(new_state)
+        self.demand_history.append(self.demand)
+        return self.demand
     
     def get_extra(self):
         return self.policy.get_threshold()

@@ -12,7 +12,7 @@ class MTFScheduler(Scheduler):
 
     def update_scheduler(self, data):
         self.thresholds = np.array(data).reshape(self.num_agents, 1)
-        self.thresholds[self.thresholds == None] = 1.0
+        self.thresholds[self.thresholds is None] = 1.0
 
     def run_scheduler(self, iteration, demands: np.ndarray):
         # token_demand = demands[demands > ]

@@ -30,7 +30,7 @@ class QLengthFairScheduler(Scheduler):
     #     assert np.max(exclusive_utilization) < 1
     #     self.exclusive_q_lengths = exclusive_utilization / (1 - exclusive_utilization)
 
-    def run_scheduler(self, iteration, demands) -> list:
+    def run_scheduler(self, iteration, demands):
         ones_c = np.ones(self.num_clusters)
         ones_ac = np.ones((self.num_agents, self.num_clusters))
 
@@ -69,7 +69,7 @@ class EEThroughputFairScheduler(Scheduler):
         self.shared_throughput = np.zeros((self.num_agents, 1))
         ###
 
-    def run_scheduler(self, iteration, demands) -> list:
+    def run_scheduler(self, iteration, demands):
         ones_c = np.ones(self.num_clusters)
         ones_a = np.ones((self.num_agents, 1))
         ones_ac = np.ones((self.num_agents, self.num_clusters))
@@ -114,7 +114,7 @@ class ThroughputFairScheduler(Scheduler):
         self.shared_throughput = np.zeros((self.num_agents, 1))
         ###
 
-    def run_scheduler(self, iteration, demands) -> list:
+    def run_scheduler(self, iteration, demands):
         ones_c = np.ones(self.num_clusters)
         ones_a = np.ones((self.num_agents, 1))
         ones_ac = np.ones((self.num_agents, self.num_clusters))

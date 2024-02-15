@@ -60,9 +60,9 @@ class Coordinator:
             demands_array = np.zeros((self.num_agents, self.num_clusters))
             agents_extra_data = []
             for q, ids in zip(self.w2c_queues, workers_agent_ids):
-                demands, agents_wokrer_extra_data = q.get()
+                demands, agents_worker_extra_data = q.get()
                 demands_array[ids] = demands
-                agents_extra_data += agents_wokrer_extra_data
+                agents_extra_data += agents_worker_extra_data
             start = time.time()
 
             self.scheduler.update_scheduler(agents_extra_data)
@@ -82,7 +82,7 @@ class Coordinator:
                     iter=iteration + 1, t=time.time() - time_duration))
                 time_duration = time.time()
         print('sending stop ...')
-        print('Average sched time: {avg:.4f}ms'.format(
+        print('Average scheduling time: {avg:.4f}ms'.format(
               avg=(np.array(t).mean() * 1000)))
         for q in self.c2w_queues:
             q.put('stop')
