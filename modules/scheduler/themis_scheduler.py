@@ -16,7 +16,6 @@ class ThroughputFairScheduler(Scheduler):
         self.exclusive_throughput = np.minimum(self.arrival_rates, exclusive_departure_rates)
         self.shared_throughput = np.zeros((self.num_agents, 1))
 
-
     def run_scheduler(self, iteration, demands):
         ones_c = np.ones(self.num_nodes)
         ones_a = np.ones((self.num_agents, 1))
