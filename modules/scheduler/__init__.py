@@ -14,3 +14,11 @@ class Scheduler:
 
     def update_scheduler(self, data):
         return
+
+    def get_alloc(self, x):
+        x = x / np.sum(x, axis=0)
+        allocation = np.zeros((self.num_agents, self.num_nodes))
+        for i in range(self.num_nodes):
+            index = np.random.choice(range(0, self.num_agents), p=x[:, i])
+            allocation[index, i] = 1
+        return allocation
