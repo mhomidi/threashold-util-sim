@@ -1,4 +1,4 @@
-from modules.scheduler import Scheduler, get_alloc
+from modules.scheduler import Scheduler
 import cvxpy as cp
 import numpy as np
 
