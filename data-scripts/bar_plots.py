@@ -102,10 +102,10 @@ if __name__ == '__main__':
     scheds = ['g_fair', 'themis', 'mtf']
     parser.add_argument('-n', '--agent_num', type=int, default=20)
     parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
-    parser.add_argument('-c', '--num_clusters', type=int, default=40)
+    parser.add_argument('-c', '--num_nodes', type=int, default=40)
     parser.add_argument('-w', '--weights', type=str, default='124')
     parser.add_argument('-u', '--util', type=str, default='80')
     parser.add_argument('-d', '--deadline', type=str, default=None)
     args = parser.parse_args()
-    agent_num, indices, c_num, util, weight_text, dd= args.agent_num, args.indices, args.num_clusters, args.util, args.weights, args.deadline
+    agent_num, indices, c_num, util, weight_text, dd= args.agent_num, args.indices, args.num_nodes, args.util, args.weights, args.deadline
     plot_average_plot_per_w(agent_num, indices, c_num, util, weight_text, dd)

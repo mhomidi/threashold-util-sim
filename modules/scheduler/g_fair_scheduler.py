@@ -22,15 +22,15 @@ class GFairScheduler(Scheduler):
             else:
                 return np.random.choice(np.arange(0, self.num_agents))
 
-    def __init__(self, agent_weights, num_agents, num_clusters):
-        super().__init__(agent_weights, num_agents, num_clusters)
-        # self.speed_ups = np.zeros((self.num_agents, self.num_clusters))
+    def __init__(self, agent_weights, num_agents, num_nodes):
+        super().__init__(agent_weights, num_agents, num_nodes)
+        # self.speed_ups = np.zeros((self.num_agents, self.num_nodes))
         self.stride_schedulers = [self.StrideScheduler(
-            self.agent_weights) for _ in range(self.num_clusters)]
+            self.agent_weights) for _ in range(self.num_nodes)]
 
     def run_scheduler(self, iteration, demands):
-        self.assignments = np.zeros((self.num_agents, self.num_clusters))
-        for i in range(self.num_clusters):
+        self.assignments = np.zeros((self.num_agents, self.num_nodes))
+        for i in range(self.num_nodes):
             agent_id = self.stride_schedulers[i].schedule(demands[:, i])
             if agent_id >= 0:
                 self.assignments[(agent_id, i)] = 1

@@ -94,12 +94,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     scheds = ['g_fair', 'themis', 'mtf']
     parser.add_argument('-n', '--agent_num', type=int, default=20)
-    parser.add_argument('-c', '--num_clusters', type=int, default=40)
+    parser.add_argument('-c', '--num_nodes', type=int, default=40)
     parser.add_argument('-w', '--weights', type=str, default='124')
     parser.add_argument('-u', '--util', type=str, default='80')
     parser.add_argument('-d', '--deadline', type=bool, default=False)
     args = parser.parse_args()
-    agent_num, c_num, weight_text, util, deadline = args.agent_num, args.num_clusters, args.weights, args.util, args.deadline
+    agent_num, c_num, weight_text, util, deadline = args.agent_num, args.num_nodes, args.weights, args.util, args.deadline
     if deadline:
         main_dd(agent_num, c_num, util, weight_text)
     else:

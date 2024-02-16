@@ -1019,7 +1019,7 @@
         "threshold_steps": 20,
         "actor_net_type": "softmax"
     },
-    "num_clusters": 40,
+    "num_nodes": 40,
     "num_agents": 20,
     "agents_per_class": [
         10,

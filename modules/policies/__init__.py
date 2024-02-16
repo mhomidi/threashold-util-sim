@@ -1,7 +1,7 @@
 class Policy:
 
-    def __init__(self, num_clusters) -> None:
-        self.num_clusters = num_clusters
+    def __init__(self, num_nodes) -> None:
+        self.num_nodes = num_nodes
 
     # get_demand should return preferences for GPUs
     def get_demands(self, state):

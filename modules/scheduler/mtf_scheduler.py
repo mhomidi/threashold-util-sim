@@ -3,8 +3,8 @@ import numpy as np
 
 
 class MTFScheduler(Scheduler):
-    def __init__(self, agent_weights, num_agents, num_clusters, token_coefficient=100):
-        super().__init__(agent_weights, num_agents, num_clusters)
+    def __init__(self, agent_weights, num_agents, num_nodes, token_coefficient=100):
+        super().__init__(agent_weights, num_agents, num_nodes)
         self.tokens = np.zeros(self.num_agents)
         for i in range(0, self.num_agents):
             self.tokens[i] = self.agent_weights[i] * token_coefficient
@@ -17,10 +17,10 @@ class MTFScheduler(Scheduler):
     def run_scheduler(self, iteration, demands: np.ndarray):
         # token_demand = demands[demands > ]
         token_demands = self.get_token_demands(demands)
-        self.assignments = np.zeros((self.num_agents, self.num_clusters))
+        self.assignments = np.zeros((self.num_agents, self.num_nodes))
         gathered_tokens = 0
         tokens = self.tokens.copy()
-        while gathered_tokens < self.num_clusters:
+        while gathered_tokens < self.num_nodes:
             max_budget_agent_index = np.argmax(tokens)
             if tokens[max_budget_agent_index] < 1:
                 break
@@ -48,7 +48,7 @@ class MTFScheduler(Scheduler):
         return token_demands
 
     def assign_remaining_e(self, demands):
-        not_assigned_num = self.num_clusters - self.assignments.sum(dtype=np.int32)
+        not_assigned_num = self.num_nodes - self.assignments.sum(dtype=np.int32)
         random_agents = np.random.choice(range(self.num_agents), size=not_assigned_num, p=self.agent_weights)
         for agent in random_agents:
             preferred_cluster = np.argmax(demands[agent])
@@ -56,7 +56,7 @@ class MTFScheduler(Scheduler):
             demands[:, preferred_cluster] = -1
 
     def assign_remaining_r(self):
-        not_assigned = np.arange(self.num_clusters)[self.assignments.sum(axis=0) == 0]
+        not_assigned = np.arange(self.num_nodes)[self.assignments.sum(axis=0) == 0]
         for i in not_assigned:
             agent = np.random.choice(range(self.num_agents), p=self.agent_weights)
             self.assignments[(agent, i)] = 1

@@ -78,8 +78,8 @@ class Actor(nn.Module):
 
 class ACPolicy(Policy):
     def __init__(self, a_input_size, c_input_size, a_h1_size, c_h1_size, c_h2_size,
-                 a_lr, c_lr, df, std_max, num_clusters, mini_batch_size=1, threshold_steps=10, actor_net_type='softmax'):
-        super().__init__(num_clusters)
+                 a_lr, c_lr, df, std_max, num_nodes, mini_batch_size=1, threshold_steps=10, actor_net_type='softmax'):
+        super().__init__(num_nodes)
         self.actor = Actor(a_input_size, threshold_steps, a_h1_size, a_lr, std_max, net_type=actor_net_type)
         self.critic = Critic(c_input_size, c_h1_size, c_h2_size, c_lr)
         self.log_prob = None

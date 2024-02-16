@@ -5,15 +5,15 @@ import numpy as np
 
 class Worker:
 
-    def __init__(self, agents, num_clusters, w2c_queue: Queue, c2w_queue: Queue):
+    def __init__(self, agents, num_nodes, w2c_queue: Queue, c2w_queue: Queue):
         self.agents = agents
         self.agents_len = len(self.agents)
         self.w2c_queue = w2c_queue
         self.c2w_queue = c2w_queue
-        self.num_clusters = num_clusters
+        self.num_nodes = num_nodes
 
     def run(self, path):
-        demands = np.zeros((self.agents_len, self.num_clusters))
+        demands = np.zeros((self.agents_len, self.num_nodes))
         for i, agent in enumerate(self.agents):
             demands[i] = agent.demand
         agents_extra_data = [None for _ in range(self.agents_len)]
@@ -39,7 +39,7 @@ class Worker:
 
 class Coordinator:
 
-    def __init__(self, scheduler, num_iterations, num_agents, num_clusters, num_workers,
+    def __init__(self, scheduler, num_iterations, num_agents, num_nodes, num_workers,
                  w2c_queues, c2w_queues, iter_print_step=100):
         self.scheduler = scheduler
         self.w2c_queues: list[Queue] = w2c_queues
@@ -47,7 +47,7 @@ class Coordinator:
         self.num_workers = num_workers
         self.num_agents = num_agents
         self.num_iterations = num_iterations
-        self.num_clusters = num_clusters
+        self.num_nodes = num_nodes
         self.iter_print_step = iter_print_step
 
     def run(self):
@@ -57,7 +57,7 @@ class Coordinator:
         t = []
 
         for iteration in range(self.num_iterations):
-            demands_array = np.zeros((self.num_agents, self.num_clusters))
+            demands_array = np.zeros((self.num_agents, self.num_nodes))
             agents_extra_data = []
             for q, ids in zip(self.w2c_queues, workers_agent_ids):
                 demands, agents_worker_extra_data = q.get()

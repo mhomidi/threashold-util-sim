@@ -23,7 +23,7 @@ sched_args = {
 
 def do_sched(sched, config_file_path, config, queue_app_type, indices):
     num_agents = config["num_agents"]
-    c_num = config["num_clusters"]
+    c_num = config["num_nodes"]
     queue_util = config["queue_util"]
     classes = config['weight_of_classes']
     weights_text = "".join([str(item) for item in classes])
@@ -38,7 +38,7 @@ def do_sched(sched, config_file_path, config, queue_app_type, indices):
 
 def recreate_folder(config, queue_app_type, sched=None):
     num_agents = config["num_agents"]
-    c_num = config["num_clusters"]
+    c_num = config["num_nodes"]
     util = config["queue_util"]
     classes = config['weight_of_classes']
     weights_text = "".join([str(item) for item in classes])
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         config = json.load(f)
         
     num_agents = config["num_agents"]
-    num_clusters = config["num_clusters"]
+    num_nodes = config["num_nodes"]
     queue_util = config['queue_util']
     agents_per_class = config['agents_per_class']
     indices = get_agent_split_indices(num_agents, agents_per_class)
@@ -104,8 +104,8 @@ if __name__ == '__main__':
         ws = get_agents_weights(num_agents, indices, classes)
         ws = ws / ws.sum()
         ws = ws.reshape(1, num_agents)
-        plot_main(num_agents, title, True, num_clusters, queue_util, weight_text, None, scheds)
+        plot_main(num_agents, title, True, num_nodes, queue_util, weight_text, None, scheds)
         for idx, c in enumerate(classes):
-            plot_per_class(num_agents, indices, idx, c, scheds, title, num_clusters, queue_util, weight_text)
-        plot_welfare(num_agents, scheds, ws, num_clusters, queue_util, weight_text)
-        plot_average_plot_per_w(num_agents, indices, num_clusters, queue_util, weight_text)
+            plot_per_class(num_agents, indices, idx, c, scheds, title, num_nodes, queue_util, weight_text)
+        plot_welfare(num_agents, scheds, ws, num_nodes, queue_util, weight_text)
+        plot_average_plot_per_w(num_agents, indices, num_nodes, queue_util, weight_text)

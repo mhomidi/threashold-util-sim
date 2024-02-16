@@ -9,17 +9,17 @@ FTF_ALPHA = 0.9
 
 class QLengthFairScheduler(Scheduler):
 
-    def __init__(self, agent_weights, num_agents, num_clusters, departure_rates, arrival_rates):
-        super().__init__(agent_weights, num_agents, num_clusters)
+    def __init__(self, agent_weights, num_agents, num_nodes, departure_rates, arrival_rates):
+        super().__init__(agent_weights, num_agents, num_nodes)
         weights = self.agent_weights / self.agent_weights.sum()
-        shares = np.ones((self.num_agents, self.num_clusters)) * weights.reshape((self.num_agents, 1))
+        shares = np.ones((self.num_agents, self.num_nodes)) * weights.reshape((self.num_agents, 1))
         self.departure_rates = departure_rates
         self.arrival_rates = arrival_rates
         exclusive_departure_rates = self.departure_rates.sum(axis=1, keepdims=True) * shares
         exclusive_utilization = self.arrival_rates / exclusive_departure_rates
         assert np.max(exclusive_utilization) < 1
         self.exclusive_q_lengths = exclusive_utilization / (1 - exclusive_utilization)
-        self.shared_queue_lengths = np.zeros((self.num_agents, self.num_clusters))
+        self.shared_queue_lengths = np.zeros((self.num_agents, self.num_nodes))
 
     # TODO: for now, do not call this function anywhere
     # def update_scheduler(self, data):
@@ -31,11 +31,11 @@ class QLengthFairScheduler(Scheduler):
     #     self.exclusive_q_lengths = exclusive_utilization / (1 - exclusive_utilization)
 
     def run_scheduler(self, iteration, demands):
-        ones_c = np.ones(self.num_clusters)
-        ones_ac = np.ones((self.num_agents, self.num_clusters))
+        ones_c = np.ones(self.num_nodes)
+        ones_ac = np.ones((self.num_agents, self.num_nodes))
 
         rho = cp.Variable(1)
-        x = cp.Variable((self.num_agents, self.num_clusters), boolean=True)
+        x = cp.Variable((self.num_agents, self.num_nodes), boolean=True)
         shared_departure_rates = cp.multiply(x, self.departure_rates)
         shared_queue_length = FTF_ALPHA * self.shared_queue_lengths + (1 - FTF_ALPHA) * (demands - shared_departure_rates)
         # shared_queue_length = demands - cp.multiply(x, self.departure_rates)
@@ -57,10 +57,10 @@ class QLengthFairScheduler(Scheduler):
 
 
 class EEThroughputFairScheduler(Scheduler):
-    def __init__(self, agent_weights, num_agents, num_clusters, departure_rates, arrival_rates):
-        super().__init__(agent_weights, num_agents, num_clusters)
+    def __init__(self, agent_weights, num_agents, num_nodes, departure_rates, arrival_rates):
+        super().__init__(agent_weights, num_agents, num_nodes)
         weights = self.agent_weights / self.agent_weights.sum()
-        shares = np.ones((self.num_agents, self.num_clusters)) * weights.reshape((self.num_agents, 1))
+        shares = np.ones((self.num_agents, self.num_nodes)) * weights.reshape((self.num_agents, 1))
         self.departure_rates = departure_rates
         self.arrival_rates = arrival_rates.reshape((self.num_agents, 1))
         exclusive_departure_rates = self.departure_rates.sum(axis=1, keepdims=True) * shares
@@ -70,12 +70,12 @@ class EEThroughputFairScheduler(Scheduler):
         ###
 
     def run_scheduler(self, iteration, demands):
-        ones_c = np.ones(self.num_clusters)
+        ones_c = np.ones(self.num_nodes)
         ones_a = np.ones((self.num_agents, 1))
-        ones_ac = np.ones((self.num_agents, self.num_clusters))
+        ones_ac = np.ones((self.num_agents, self.num_nodes))
 
         rho = cp.Variable(1)
-        x = cp.Variable((self.num_agents, self.num_clusters), boolean=True)
+        x = cp.Variable((self.num_agents, self.num_nodes), boolean=True)
         ###
         shared_departures = cp.sum(cp.minimum(cp.multiply(x, self.departure_rates), demands), axis=1, keepdims=True)
         shared_throughput = FTF_ALPHA * self.shared_throughput + (1 - FTF_ALPHA) * shared_departures
@@ -102,10 +102,10 @@ class EEThroughputFairScheduler(Scheduler):
 
 
 class ThroughputFairScheduler(Scheduler):
-    def __init__(self, agent_weights, num_agents, num_clusters, departure_rates, arrival_rates):
-        super().__init__(agent_weights, num_agents, num_clusters)
+    def __init__(self, agent_weights, num_agents, num_nodes, departure_rates, arrival_rates):
+        super().__init__(agent_weights, num_agents, num_nodes)
         weights = self.agent_weights / self.agent_weights.sum()
-        shares = np.ones((self.num_agents, self.num_clusters)) * weights.reshape((self.num_agents, 1))
+        shares = np.ones((self.num_agents, self.num_nodes)) * weights.reshape((self.num_agents, 1))
         self.departure_rates = departure_rates
         self.arrival_rates = arrival_rates.reshape((self.num_agents, 1))
         exclusive_departure_rates = self.departure_rates.sum(axis=1, keepdims=True) * shares
@@ -115,12 +115,12 @@ class ThroughputFairScheduler(Scheduler):
         ###
 
     def run_scheduler(self, iteration, demands):
-        ones_c = np.ones(self.num_clusters)
+        ones_c = np.ones(self.num_nodes)
         ones_a = np.ones((self.num_agents, 1))
-        ones_ac = np.ones((self.num_agents, self.num_clusters))
+        ones_ac = np.ones((self.num_agents, self.num_nodes))
 
         rho = cp.Variable(1)
-        x = cp.Variable((self.num_agents, self.num_clusters), nonneg=True)
+        x = cp.Variable((self.num_agents, self.num_nodes), nonneg=True)
         ###
         shared_departures = cp.sum(cp.minimum(cp.multiply(x, self.departure_rates), demands), axis=1, keepdims=True)
         # shared_throughput = FTF_ALPHA * self.shared_throughput + (1 - FTF_ALPHA) * shared_departures
@@ -151,8 +151,8 @@ class ThroughputFairScheduler(Scheduler):
     
     def get_alloc(self, x):
         x = x / np.sum(x, axis=0)
-        allocation = np.zeros((self.num_agents, self.num_clusters))
-        for i in range(self.num_clusters):
+        allocation = np.zeros((self.num_agents, self.num_nodes))
+        for i in range(self.num_nodes):
             index = np.random.choice(range(0, self.num_agents), p=x[:, i])
             allocation[index, i] = 1
         return allocation
@@ -162,6 +162,6 @@ class ThroughputFairScheduler(Scheduler):
         # df_selections = pd.DataFrame(
         # data = rng.multinomial(n=1, pvals=df_probabilities), columns=range(self.num_agents))
         # agents = df_selections.idxmax(axis=1).values
-        # alloc = np.zeros((self.num_agents, self.num_clusters))
-        # alloc[agents,range(self.num_clusters)] = 1
+        # alloc = np.zeros((self.num_agents, self.num_nodes))
+        # alloc[agents,range(self.num_nodes)] = 1
         # return alloc
