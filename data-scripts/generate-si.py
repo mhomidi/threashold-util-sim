@@ -8,7 +8,7 @@ import pandas as pd
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 sys.path.append(root)
 
-from sys_setup import get_agents_weights
+from script_utils import get_agents_weights
 
 scheds = ['g_fair', 'themis', 'mtf']
 scheds_titles = ['Gandiva_fair', 'Themis', 'MTF']

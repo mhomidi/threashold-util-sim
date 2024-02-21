@@ -9,7 +9,8 @@ sys.path.append(root)
 
 from generate_plots import main as plot_main
 from generate_avg import main as avg_main
-from sys_setup import main as setup_main, get_agent_split_indices, get_agents_weights
+from sys_setup import main as setup_main, get_agent_split_indices
+from script_utils import get_agents_weights 
 from hetero_avg import plot_per_sched
 from hetero_avg import plot_per_class
 from plot_welfare import plot_welfare
@@ -17,7 +18,9 @@ from bar_plots import plot_average_plot_per_w
 
 sched_args = {
     'g_fair': [1, 0, 1, 1],
-    'themis': [1, 0, 2, 3],
+    'wrr': [1, 0, 2, 2],
+    'themis': [1, 0, 3, 3],
+    'ceei': [1, 0, 4, 4],
     'mtf': [1, 0, 0, 0],
 }
 
@@ -64,11 +67,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sched', type=str, default=None)
     parser.add_argument('-p', '--plot', type=bool, default=False)
-    parser.add_argument('-r', '--run', type=bool, default=True)
+    parser.add_argument('-r', '--should_run', type=bool, default=False)
     parser.add_argument('-q', '--queue_app_type', type=str, default='dd')
     args = parser.parse_args()
     sched = args.sched
-    should_run = args.run
+    should_run = args.should_run
     plot = args.plot
     queue_app_type = args.queue_app_type
     if queue_app_type == 'wo_dd':

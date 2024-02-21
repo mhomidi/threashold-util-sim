@@ -6,18 +6,14 @@ from matplotlib import patches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import script_utils 
 
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 
-
-SCHED_TITLES = {
-    'g_fair': 'Gandiva_fair',    
-    'themis': 'Themis',    
-    'mtf': 'MTF',    
-}
+colors = script_utils.COLORS
+sched_titles = script_utils.SCHED_TITLES
 
 def main(agent_num, title, is_std, c_num, util, weights_text, dd=None, scheds = ['g_fair', 'themis', 'mtf']):
-    colors = ['purple', 'orange', 'green']
     means = []
     stds = []
     plt.figure()
@@ -38,7 +34,7 @@ def main(agent_num, title, is_std, c_num, util, weights_text, dd=None, scheds = 
     if is_std:
         for idx, sched in enumerate(scheds):
             plt.fill_between(range(len(std)), means[idx]-stds[idx], means[idx]+stds[idx], alpha=0.2, color=colors[idx])
-            legs.append(patches.Patch(color=colors[idx], label=SCHED_TITLES[sched]))
+            legs.append(patches.Patch(color=colors[idx], label=sched_titles[sched]))
 
     plt.legend(handles=legs)
 

@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import matplotlib.patches as mpatches 
+import script_utils
 
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 
 seen_agents = None
-
+colors = script_utils.COLORS
 
 def read_data(direct, file, indices):
     agent_id = str.split(direct, 'agent_')[-1]
@@ -31,7 +32,6 @@ def read_data(direct, file, indices):
     return data[:, 0], group
 
 def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title, c_num, queue_util, weights_text, dd=None):
-    colors = ['purple', 'orange', 'green']
     res = dict()
     for sched in scheds:
         

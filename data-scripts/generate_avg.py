@@ -70,7 +70,6 @@ if __name__ == '__main__':
     with open(config_file_path, 'r') as f:
         config = json.load(f)
     classes = config['weight_of_classes']
-    scheds = ['g_fair', 'themis', 'mtf']
 
 
     main(agent_num, sched, c_num, queue_util, weight_text, dd)

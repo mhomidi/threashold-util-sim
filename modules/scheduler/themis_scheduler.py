@@ -41,4 +41,5 @@ class ThroughputFairScheduler(Scheduler):
         # after alloc, recalculate shared_departures based on alloc
         shared_departures = np.minimum(allocation * self.departure_rates, demands)
         self.shared_throughput = FTF_ALPHA * self.shared_throughput + (1 - FTF_ALPHA) * shared_departures
+    
         return allocation, None

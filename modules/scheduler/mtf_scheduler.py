@@ -12,7 +12,7 @@ class MTFScheduler(Scheduler):
 
     def update_scheduler(self, data):
         self.thresholds = np.array(data).reshape(self.num_agents, 1)
-        self.thresholds[self.thresholds is None] = 1.0
+        self.thresholds[self.thresholds == None] = 1.0
 
     def run_scheduler(self, iteration, demands: np.ndarray):
         # token_demand = demands[demands > ]
@@ -37,8 +37,8 @@ class MTFScheduler(Scheduler):
         
         weights = self.agent_weights / self.agent_weights.sum()
         self.tokens += weights * gathered_tokens
-        # self.assign_remaining_e(demands)
-        self.assign_remaining_r()
+        self.assign_remaining_e(demands)
+        # self.assign_remaining_r()
         return self.assignments, self.tokens
     
     def get_token_demands(self, demands):

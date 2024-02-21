@@ -929,19 +929,24 @@
         "q3": 35,
         "q4": 20
     },
+    "max_queue_length_coefficient_of_classes": [
+        1.0,
+        1.0,
+        1.0
+    ],
     "scheduler_types": [
         "mtf_scheduler",
         "g_fair_scheduler",
         "wrr_scheduler",
         "themis_scheduler",
-        "proportional_scheduler",
-        "thr_policy"
+        "ceei_scheduler"
     ],
     "policy_types": [
         "ac_policy",
         "g_fair_policy",
+        "wrr_policy",
         "themis_policy",
-        "thr_policy"
+        "ceei_policy"
     ],
     "std_max": {
         "markov": {
@@ -1038,7 +1043,7 @@
     ],
     "queue_util": "80",
     "num_iterations": 300,
-    "coordinator_step_print": 100,
+    "coordinator_step_print": 50,
     "num_workers": 2,
     "token_coefficient": 100,
     "queue_app_alpha": 0.8,

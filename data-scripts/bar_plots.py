@@ -7,16 +7,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.patches as mpatches 
 import pandas as pd
+import script_utils
 
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 
 seen_agents = None
-
-SCHED_TITLES = {
-    'g_fair': 'Gandiva_fair',    
-    'themis': 'Themis',    
-    'mtf': 'MTF',    
-}
+scheds = script_utils.SCHED_TITLES.keys()
+scheds_title = script_utils.SCHED_TITLES
 
 def create_weight_labels(weights):
     ws = []
@@ -48,8 +45,6 @@ def read_data(direct, file, indices):
 
 def plot_average_plot_per_w(agent_num, indices, c_num, util, weights, dd=None):
     ws = create_weight_labels(int(weights))
-    scheds = ['g_fair', 'themis', 'mtf']
-    scheds_titile = ['Gandiva_fair', 'Themis', 'MTF']
     means = {}
     cil = {}
     for w in ws:
@@ -89,7 +84,8 @@ def plot_average_plot_per_w(agent_num, indices, c_num, util, weights, dd=None):
     for idx, w in enumerate(ws):
         plt.bar(xs[idx], height=means[w], width=bar_width, yerr=cil[w], label=w, capsize=2)
     nw = len(ws)
-    plt.xticks([r + ((nw-1) * bar_width / 2) for r in range(len(scheds_titile))], scheds_titile)
+    plt.xticks([r + ((nw-1) * bar_width / 2) for r in range(len(scheds_title))], scheds_title.values())
+    plt.ylabel('Average Throughput')
     plt.legend()
     plt.savefig(os.path.join(main_path, 'weight_bar.svg'))
     plt.savefig(os.path.join(main_path, 'weight_bar.pdf'))

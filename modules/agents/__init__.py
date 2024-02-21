@@ -10,7 +10,7 @@ class Agent:
         self.weight = weight
         self.dist_app = distributed_app
         self.policy = policy
-        self.demand = self.policy.get_demands(self.dist_app.get_customized_state())
+        self.demand = np.zeros(self.cluster_size)
         self.assignments = np.zeros(self.cluster_size)
         self.demand_history = list()
 

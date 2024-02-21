@@ -4,7 +4,7 @@ from modules.applications.queue import QueueApplication
 from modules.applications.dist_app import DistQueueApp
 from modules.utils.load_utils import *
 from utils.distribution import PoissonGenerator
-from modules.scheduler import mtf_scheduler, g_fair_scheduler, wrr_scheduler, themis_scheduler
+from modules.scheduler import mtf_scheduler, g_fair_scheduler, wrr_scheduler, themis_scheduler, ceei_scheduler
 from modules.coordination import Coordinator, Worker
 from modules.policies import ac_policy
 from modules.policies import Policy
@@ -29,11 +29,12 @@ def get_speed_up_factors(speed_ups, sp_weights, num_nodes, num_agents):
 
 
 def create_dist_app(app_type, app_sub_type, config, load_calculator, num_nodes,
-                    agent_id, speed_up_factors, arr_rate_coeff, queue_app_type, deadline):
+                    agent_id, speed_up_factors, arr_rate_coeff, queue_app_type, deadline,
+                    max_queue_coeff):
     if app_type == "queue":
         arrival_tps = config["queue_app_arrival_tps"][app_sub_type] * arr_rate_coeff
         departure_tps = config["queue_app_departure_tps"][app_sub_type]
-        max_queue_length = config["queue_app_max_queue_length"][app_sub_type]
+        max_queue_length = int(config["queue_app_max_queue_length"][app_sub_type] * max_queue_coeff)
         alpha = config["queue_app_alpha"]
         apps = list()
         lb_type = config['lb_type']
@@ -73,25 +74,33 @@ def get_agent_split_indices(num_agents, agents_per_class: dict):
     indices.pop()
     return indices
 
-
-def get_agents_weights(num_agents, agent_split_indices, weight_of_classes):
-    agent_weights = np.ones(num_agents)
-    assert len(agent_split_indices) + 1 == len(weight_of_classes)
-    ids_weight_classes = np.split(
-        np.arange(0, num_agents), agent_split_indices)
-    for wc, wpc in zip(ids_weight_classes, weight_of_classes):
-        agent_weights[wc] *= wpc
-    return agent_weights
-
-
-def get_arrival_rate_coefficients(num_agents, agent_split_indices, arrival_rate_coefficient_of_classes):
+def get_coefficients(config, app_sub_type):
+    num_agents = config["num_agents"]
+    agents_per_class = config["agents_per_class"]
+    agent_split_indices = get_agent_split_indices(num_agents, agents_per_class)
+    
     agent_arr_coeff = np.ones(num_agents)
+    agent_weights = np.ones(num_agents)
+    agent_mqs = np.ones(num_agents)
+    arrival_rate_coefficient_of_classes = config['arrival_rate_coefficient_of_classes']
+    weight_of_classes = config['weight_of_classes']
+    for w in weight_of_classes:
+        assert(isinstance(w, int))
+    max_queue_length_coefficient_of_classes = config['max_queue_length_coefficient_of_classes']
+    for mqc in max_queue_length_coefficient_of_classes:
+        assert(isinstance(mqc, float) or isinstance(w, int))
     assert len(agent_split_indices) + 1 == len(arrival_rate_coefficient_of_classes)
+    assert len(agent_split_indices) + 1 == len(weight_of_classes)
+    assert len(agent_split_indices) + 1 == len(max_queue_length_coefficient_of_classes)
+
     ids_agent_coeffs = np.split(
         np.arange(0, num_agents), agent_split_indices)
-    for ac, acc in zip(ids_agent_coeffs, arrival_rate_coefficient_of_classes):
+    for ac, acc, wc, mqc in zip(ids_agent_coeffs, arrival_rate_coefficient_of_classes, weight_of_classes, max_queue_length_coefficient_of_classes):
         agent_arr_coeff[ac] *= acc
-    return agent_arr_coeff
+        agent_weights[ac] *= wc
+        agent_mqs[ac] *= mqc
+        
+    return agent_arr_coeff, agent_weights, agent_mqs
 
 
 def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, queue_app_type='wo_dd', themis_type_id=1):
@@ -131,17 +140,19 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         assert(isinstance(w, int))
     arrival_rate_coefficient_of_classes = config['arrival_rate_coefficient_of_classes']
     themis_type = config['themis_type'][themis_type_id]
+    
+    arr_rate_coeffs, agent_weights, max_queue_coeffs = get_coefficients(config, app_sub_type)
 
-    agent_split_indices = get_agent_split_indices(num_agents, agents_per_class)
+    # agent_split_indices = get_agent_split_indices(num_agents, agents_per_class)
 
-    agent_weights = get_agents_weights(num_agents, agent_split_indices, weight_of_classes)
-    non_normalized_agent_weights = agent_weights
+    # agent_weights = get_agents_weights(num_agents, agent_split_indices, weight_of_classes)
+    non_normalized_agent_weights = agent_weights.copy()
     agent_weights /= agent_weights.sum()
 
     sp_factors = get_speed_up_factors(speed_ups, sp_weights, num_nodes, num_agents)
 
-    arr_rate_coeffs = get_arrival_rate_coefficients(
-        num_agents, agent_split_indices, arrival_rate_coefficient_of_classes)
+    # arr_rate_coeffs = get_arrival_rate_coefficients(
+    #     num_agents, agent_split_indices, arrival_rate_coefficient_of_classes)
     
 
     util = config["queue_util"]
@@ -178,6 +189,9 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
                 agent_weights, num_agents, num_nodes, departure_rates, arrival_rates)
         else:
             sys.exit("Unknown themis scheduler type!")
+    elif scheduler_type == "ceei_scheduler":
+        scheduler = ceei_scheduler.CEEIScheduler(
+            agent_weights, num_agents, num_nodes)
     else:
         sys.exit("unknown scheduler type!")
 
@@ -192,7 +206,8 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
             load_calculator = ExpectedWaitTimeLoadCalculator()
             dist_app = create_dist_app(
                 app_type, app_sub_type, config, load_calculator, num_nodes,
-                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
+                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline,
+                max_queue_coeffs[agent_id])
             policy = ac_policy.ACPolicy(a_input_size=(num_agents + num_nodes), c_input_size=(num_agents + num_nodes),
                                         a_h1_size=a_h1_size, c_h1_size=c_h1_size, c_h2_size=c_h2_size,
                                         a_lr=ac_a_lr, c_lr=ac_c_lr, df=ac_discount_factor, std_max=std_max, num_nodes=num_nodes,
@@ -200,6 +215,14 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
                                         actor_net_type=actor_net_type)
             agent = ac_agent.ACAgent(
                 agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
+        elif policy_type in ["g_fair_policy", "themis_policy", "wrr_policy", "ceei_policy"]:
+            load_calculator = ExpectedWaitTimeLoadCalculator()
+            dist_app = create_dist_app(
+                app_type, app_sub_type, config, load_calculator, num_nodes,
+                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline, 
+                max_queue_coeffs[agent_id])
+            policy = Policy(num_nodes)
+            agent = Agent(agent_id, agent_weights[agent_id], dist_app, policy)
         # elif policy_type == "thr_policy":
         #     load_calculator = ExpectedWaitTimeLoadCalculator()
         #     dist_app = create_dist_app(
@@ -211,28 +234,6 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         #     policy = fixed_thr_policy.FixedThrPolicy(num_nodes, threshold)
         #     agent = ac_agent.ACAgent(
         #         agent_id, agent_weights[agent_id], dist_app, policy, scheduler.tokens.copy())
-        elif policy_type == "g_fair_policy":
-            # TODO: check ExpectedWaitTimeLoadCalculator()
-            load_calculator = GFairLoadCalculator()
-            dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_nodes,
-                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
-            policy = Policy(num_nodes)
-            agent = Agent(agent_id, agent_weights[agent_id], dist_app, policy)
-        elif policy_type == "themis_policy":
-            load_calculator = ExpectedWaitTimeLoadCalculator()
-            dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_nodes,
-                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
-            policy = Policy(num_nodes)
-            agent = Agent(agent_id, agent_weights[agent_id], dist_app, policy)
-        elif policy_type == "wrr_policy":
-            load_calculator = ExpectedWaitTimeLoadCalculator()
-            dist_app = create_dist_app(
-                app_type, app_sub_type, config, load_calculator, num_nodes,
-                agent_id, agent_spf, arr_rate_coeffs[agent_id], queue_app_type, deadline)
-            policy = Policy(num_nodes)
-            agent = Agent(agent_id, agent_weights[agent_id], dist_app, policy)
         else:
             sys.exit("Unknown policy type!")
 
@@ -271,8 +272,3 @@ if __name__ == "__main__":
     main(config_file_path, args.app_type_id,
          args.app_type_sub_id, args.policy_id, args.scheduler_id)
     print("Done")
-
-# python test/test.py 1 0 0 0 ## queue, q0, AC
-# python test/test.py 1 0 1 1 ## queue, q0, G-fair
-# python test/test.py 1 0 1 2 ## queue, q0, RR
-# python test/test.py 1 0 2 3 ## queue, q0, Themis

@@ -10,11 +10,13 @@ import pandas as pd
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 sys.path.append(root)
 
-from sys_setup import get_agent_split_indices, get_agents_weights
+from sys_setup import get_agent_split_indices
+from script_utils import get_agents_weights
+import script_utils
 
 
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
-colors = ['deepskyblue', 'orange', 'darkolivegreen', 'violet']
+colors = script_utils.COLORS
 legends = []
 
 
@@ -57,9 +59,10 @@ def scheduler_welfare_plot_b(agent_num, sched, weights, c_num, util, weight_text
         for file in files:
             if file == 'utility.csv':
                 data.append(read_data(subdir, file))
+    # data = np.array(data).T * 1. / agent_num
     data = np.array(data).T * weights
-    data = data.sum(axis=1)
-    return data[-50:].mean(), data[-50:].std()
+    data = data.mean(axis=0)
+    return data.sum(), data.std()
 
 def d_save_files(main_path):
     plt.legend(handles=legends)
@@ -93,7 +96,7 @@ def plot_welfare(agent_num, scheds, weights, c_num, util, weight_text, dd=None):
     d_save_files(main_path)
     
     plt.figure()
-    plt.ylabel('Weighted Social Welfare')
+    plt.ylabel('Unweighted Social Welfare')
     means = []
     stds = []
     for idx, sched in enumerate(scheds):
@@ -111,7 +114,7 @@ def plot_welfare(agent_num, scheds, weights, c_num, util, weight_text, dd=None):
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
-    scheds = ['g_fair', 'themis', 'mtf']
+    scheds = ['g_fair', 'themis', 'wrr', 'ceei', 'mtf']
     parser.add_argument('-n', '--agent_num', type=int, default=20)
     parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
     parser.add_argument('-c', '--num_nodes', type=int, default=40)
@@ -125,7 +128,6 @@ if __name__ == "__main__":
     with open(config_file_path, 'r') as f:
         config = json.load(f)
     classes = config['weight_of_classes']
-    scheds = ['g_fair', 'themis', 'mtf']
     
     if indices is None:
         indices = get_agent_split_indices(num_agents, classes)

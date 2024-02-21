@@ -8,6 +8,9 @@ class CEEIScheduler(Scheduler):
         super().__init__(agent_weights, num_agents, num_nodes)
 
     def run_scheduler(self, iteration, demands):
+        if iteration == 0:
+            # NOTE: All agent are zero at first iteration and there is no optimal answer.
+            return np.zeros((self.num_agents, self.num_nodes)), None
         x = cp.Variable(shape=(self.num_agents, self.num_nodes), nonneg=True)
         v = cp.Variable(shape=self.num_agents)
         u = cp.Parameter(shape=(self.num_agents, self.num_nodes), value=demands)
@@ -17,7 +20,7 @@ class CEEIScheduler(Scheduler):
         ]
         objective = cp.Maximize(cp.sum(cp.log(v) @ self.agent_weights))
         prob = cp.Problem(objective, constraints)
-        prob.solve()
+        prob.solve(cp.SCS)
         if prob.status != cp.OPTIMAL:
             raise Exception(prob.status)
         
