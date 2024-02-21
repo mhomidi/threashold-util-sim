@@ -4,7 +4,7 @@ from modules.applications.queue import QueueApplication
 from modules.applications.dist_app import DistQueueApp
 from modules.utils.load_utils import *
 from utils.distribution import PoissonGenerator
-from modules.scheduler import mtf_scheduler, g_fair_scheduler, wrr_scheduler, themis_scheduler, ceei_scheduler
+from modules.scheduler import mtf_scheduler, g_fair_scheduler, lottery_scheduler, themis_scheduler, ceei_scheduler
 from modules.coordination import Coordinator, Worker
 from modules.policies import ac_policy
 from modules.policies import Policy
@@ -175,7 +175,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
         scheduler = g_fair_scheduler.GFairScheduler(
             agent_weights, num_agents, num_nodes)
     elif scheduler_type == "wrr_scheduler":
-        scheduler = wrr_scheduler.WeightedRoundRobinScheduler(
+        scheduler = wrr_scheduler.LotteryScheduler(
             non_normalized_agent_weights, num_agents, num_nodes)
     elif scheduler_type == "themis_scheduler":
         departure_rates = sp_factors * config['queue_app_departure_tps'][app_sub_type]

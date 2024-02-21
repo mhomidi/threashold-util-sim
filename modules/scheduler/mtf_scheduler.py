@@ -37,8 +37,8 @@ class MTFScheduler(Scheduler):
         
         weights = self.agent_weights / self.agent_weights.sum()
         self.tokens += weights * gathered_tokens
-        self.assign_remaining_e(demands)
-        # self.assign_remaining_r()
+        # self.assign_remaining_e(demands)
+        self.assign_remaining_r()
         return self.assignments, self.tokens
     
     def get_token_demands(self, demands):
