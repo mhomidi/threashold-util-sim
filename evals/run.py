@@ -17,8 +17,8 @@ from plot_welfare import plot_welfare
 from bar_plots import plot_average_plot_per_w
 
 sched_args = {
-    'themis': [0, 2, 2],
-    'g_fair': [0, 0, 0],
+    'tant': [0, 2, 2],
+    'ss': [0, 0, 0],
     'l_dice': [0, 1, 1],
     's_dice': [0, 4, 4],
     'm_dice': [0, 3, 3]

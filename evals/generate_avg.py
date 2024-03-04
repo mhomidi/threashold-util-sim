@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import script_utils
 
 root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 
@@ -31,7 +32,6 @@ def main(agent_num, sched, c_num, util, weights_text, dd=None, app_sub_id=0):
             if file == 'utility.csv':
                 data.append(read_data(subdir, file))
     data = np.array(data).T
-    print(data.shape)
     mean = data.mean(axis=1)
     std = data.std(axis=1)
     data_min = data.min(axis=1)
@@ -55,7 +55,7 @@ def main(agent_num, sched, c_num, util, weights_text, dd=None, app_sub_id=0):
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
-    scheds = ['g_fair', 'themis', 'mtf']
+    scheds = list(script_utils.SCHED_TITLES.keys())
     parser.add_argument('-n', '--agent_num', type=int, default=20)
     parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
     parser.add_argument('-c', '--num_nodes', type=int, default=40)

@@ -114,7 +114,7 @@ def plot_welfare(agent_num, scheds, weights, c_num, util, weight_text, dd=None, 
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
-    scheds = ['g_fair', 'themis', 'wrr', 'ceei', 'mtf']
+    scheds = list(script_utils.SCHED_TITLES.keys())
     parser.add_argument('-n', '--agent_num', type=int, default=20)
     parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
     parser.add_argument('-c', '--num_nodes', type=int, default=40)

@@ -107,7 +107,7 @@ def get_coefficients(config, app_sub_type):
     return agent_arr_coeff, agent_weights, agent_mqs
 
 
-def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, threshold_in=-1, deadline_type='wo_dd', themis_type_id=1):
+def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id, deadline_type='wo_dd'):
     start_time = time.time()
     with open(config_file_name, 'r') as f:
         config = json.load(f)
@@ -130,7 +130,6 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     weight_of_classes = config['weight_of_classes']
     for w in weight_of_classes:
         assert(isinstance(w, int))
-    themis_type = config['themis_type'][themis_type_id]
     
     arr_rate_coeffs, agent_weights, max_queue_coeffs = get_coefficients(config, app_sub_type)
     non_normalized_agent_weights = agent_weights.copy()
@@ -154,7 +153,7 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     agents_list = []
     worker_processors: list[Process] = []
 
-    if scheduler_type == "g_fair_scheduler":
+    if scheduler_type == "ss_scheduler":
         scheduler = ss_scheduler.GFairScheduler(
             agent_weights, num_agents, num_nodes)
     elif scheduler_type == "l_dice_scheduler":
@@ -163,18 +162,12 @@ def main(config_file_name, app_type_id, app_sub_type_id, policy_id, scheduler_id
     elif scheduler_type == "s_dice_scheduler":
         scheduler = s_dice_scheduler.StrideScheduler(
             non_normalized_agent_weights, num_agents, num_nodes)
-    elif scheduler_type == "themis_scheduler":
+    elif scheduler_type == "tant_scheduler":
         departure_rates = sp_factors * config['queue_app_departure_tps']
         arrival_rates = np.ones((num_agents, 1)) * config['queue_app_arrival_tps'][app_sub_type]
         arrival_rates = arrival_rates * arr_rate_coeffs.reshape((num_agents, 1))
-        if themis_type == 'queue_length':
-            scheduler = tant_scheduler.QLengthFairScheduler(
-                agent_weights, num_agents, num_nodes, departure_rates, arrival_rates)
-        elif themis_type == 'throughput':
-            scheduler = tant_scheduler.ThroughputFairScheduler(
-                agent_weights, num_agents, num_nodes, departure_rates, arrival_rates)
-        else:
-            sys.exit("Unknown themis scheduler type!")
+        scheduler = tant_scheduler.ThroughputFairScheduler(
+            agent_weights, num_agents, num_nodes, departure_rates, arrival_rates)
     elif scheduler_type == "m_dice_scheduler":
         scheduler = m_dice_scheduler.CEEIScheduler(
             agent_weights, num_agents, num_nodes)

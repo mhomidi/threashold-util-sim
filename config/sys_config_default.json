@@ -44,8 +44,8 @@
         4
     ],
     "queue_util": "80",
-    "num_iterations": 3000,
-    "coordinator_step_print": 300,
+    "num_iterations": 10,
+    "coordinator_step_print": 5,
     "num_workers": 2,
     "queue_app_alpha": 0.8,
     "speed_ups": [
@@ -65,21 +65,17 @@
         "dd": "with_deadline"
     },
     "deadline": 5,
-    "themis_type": [
-        "queue_length",
-        "throughput"
-    ],
     "scheduler_types": [
-        "g_fair_scheduler",
+        "ss_scheduler",
         "l_dice_scheduler",
-        "themis_scheduler",
+        "tant_scheduler",
         "m_dice_scheduler",
         "s_dice_scheduler"
     ],
     "policy_types": [
-        "g_fair_policy",
+        "ss_policy",
         "l_dice_policy",
-        "themis_policy",
+        "tant_policy",
         "m_dice_policy",
         "s_dice_policy"
     ]

@@ -4,8 +4,8 @@ import numpy as np
 COLORS = ['purple', 'orange', 'green', 'red', 'yellow', 'gray']
 
 SCHED_TITLES = {
-    'themis': 'Themis',    
-    'g_fair': 'Gandiva_fair',    
+    'tant': 'TANT',    
+    'ss': 'SS',    
     'l_dice': 'L-Dice',
     's_dice': 'S-Dice',
     'm_dice': 'M-Dice',

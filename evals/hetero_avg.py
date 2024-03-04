@@ -104,7 +104,7 @@ def plot_per_sched(agent_num, sched, indices, c_num, util, weights_text, dd=None
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    scheds = ['g_fair', 'themis', 'mtf']
+    scheds = list(script_utils.SCHED_TITLES.keys())
     parser.add_argument('-n', '--agent_num', type=int, default=20)
     parser.add_argument('-i', '--indices', type=int, nargs='*', default=None)
     parser.add_argument('-c', '--num_nodes', type=int, default=40)
