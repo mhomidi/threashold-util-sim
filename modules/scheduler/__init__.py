@@ -1,32 +1,24 @@
-
-
-from modules.dispatcher.pref import Dispatcher
-import config
+import numpy as np
+from modules.agents import *
 
 
 class Scheduler:
+    def __init__(self, agent_weights, num_agents, num_nodes):
+        self.agent_weights = agent_weights
+        self.num_agents = num_agents
+        self.num_nodes = num_nodes
+        self.assignments = np.zeros((self.num_agents, self.num_nodes))
 
-    def __init__(self) -> None:
-        self.report = None
-        self.cluster_assignment = [
-            -1 for _ in range(config.get('cluster_num'))]
-        self.dispatcher = None
-        self.assignment_history = list()
+    def run_scheduler(self, iteration, demands):
+        raise NotImplementedError
 
-    def set_report(self, report: list) -> None:
-        self.report = report
+    def update_scheduler(self, data):
+        return
 
-    def get_report(self) -> list:
-        return self.report
-
-    def get_dispatcher(self) -> Dispatcher:
-        return self.dispatcher
-
-    def get_cluster_assignments(self):
-        return self.cluster_assignment
-
-    def schedule(self) -> list:
-        raise NotImplementedError()
-
-    def run(self):
-        raise NotImplementedError()
+    def get_alloc(self, x):
+        x = x / np.sum(x, axis=0)
+        allocation = np.zeros((self.num_agents, self.num_nodes))
+        for i in range(self.num_nodes):
+            index = np.random.choice(range(0, self.num_agents), p=x[:, i])
+            allocation[index, i] = 1
+        return allocation

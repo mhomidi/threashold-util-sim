@@ -1,11 +1,86 @@
 {
-    "cluster_num": 10,
-    "default_agent_num": 5,
-    "budget": 10,
-    "discount_factor": 0.99,
-    "threshold_num": 10,
-    "episodes": 100,
-    "util_interval": 10,
-    "token_dist_sample": 11,
-    "token_eps": 1e-4
+    "app_types": [
+        "queue"
+    ],
+    "app_sub_types": {
+        "queue": [
+            "q1",
+            "q2",
+            "q3",
+            "q4",
+            "q5"
+        ]
+    },
+    "queue_app_arrival_tps": {
+        "q1": 2.21902,
+        "q2": 1.94164,
+        "q3": 1.66426,
+        "q4": 1.38688,
+        "q5": 1.10951
+
+    },
+    "queue_app_departure_tps": 2.352175,
+    "queue_app_max_queue_length": 5,
+    "max_queue_length_coefficient_of_classes": [
+        1.0,
+        1.0,
+        1.0
+    ],
+    "num_nodes": 5,
+    "num_agents": 10,
+    "agents_per_class": [
+        10,
+        5,
+        5
+    ],
+    "weight_of_classes": [
+        1,
+        2,
+        4
+    ],
+    "arrival_rate_coefficient_of_classes": [
+        1,
+        2,
+        4
+    ],
+    "queue_util": "80",
+    "num_iterations": 3000,
+    "coordinator_step_print": 300,
+    "num_workers": 2,
+    "queue_app_alpha": 0.8,
+    "speed_ups": [
+        1,
+        1.4088,
+        1.3081
+        
+    ],
+    "sp_weights": [
+        2,
+        1,
+        1
+    ],
+    "lb_type": "p2c",
+    "queue_app_type": {
+        "wo_dd": "without_deadline",
+        "dd": "with_deadline"
+    },
+    "deadline": 5,
+    "themis_type": [
+        "queue_length",
+        "throughput"
+    ],
+    "scheduler_types": [
+        "g_fair_scheduler",
+        "l_dice_scheduler",
+        "themis_scheduler",
+        "m_dice_scheduler",
+        "s_dice_scheduler"
+    ],
+    "policy_types": [
+        "g_fair_policy",
+        "l_dice_policy",
+        "themis_policy",
+        "m_dice_policy",
+        "s_dice_policy"
+    ]
 }

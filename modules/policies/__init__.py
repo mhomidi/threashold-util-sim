@@ -1,12 +1,17 @@
-
 class Policy:
 
-    def __init__(self) -> None:
-        self.state = None
-        self.prev_state = None
+    def __init__(self, num_nodes) -> None:
+        self.num_nodes = num_nodes
 
-    def get_u_thr(self, data: list):
-        raise NotImplementedError()
+    # get_demand should return preferences for GPUs
+    def get_demands(self, state):
+        return state
 
-    def train(self, reward: float, new_state_data: list):
-        raise NotImplementedError()
+    def update_policy(self, old_state, action, reward, new_state):
+        return
+
+    def printable_action(self, state):
+        return 0
+
+    def stop(self, path, agent_id):
+        return

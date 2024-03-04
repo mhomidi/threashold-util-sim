@@ -1,40 +1,70 @@
-
-from __future__ import annotations
-import random
-
-
-class State:
-
-    def __init__(self, name: str, val: list) -> None:
-        self.name = name
-        self.val = val
-
-    def get_utils(self) -> list:
-        return self.val
-
-    def set_val(self, val: list) -> None:
-        self.val = val
+import numpy as np
+import os
 
 
 class Application:
 
     def __init__(self) -> None:
-        self.states = list()
-        self.init_state = None
-        self.curr_state = None
+        self.state_history = list()
+        self.state = None
 
-    def go_next_state(self) -> None:
-        raise NotImplementedError()
+    def update_state(self, iteration) -> None:
+        raise NotImplementedError
 
-    def get_curr_state(self) -> State:
-        return self.curr_state
+    def get_state(self):
+        return self.state
 
-    def reset(self) -> None:
-        self.curr_state = self.init_state
+    def get_normalized_state(self):
+        return self.state
 
-    def get_state_with_name(self, name: str) -> State:
-        for state in self.states:
-            state: State
-            if state.name == name:
-                return state
-        return None
+    def get_customized_state(self):
+        return self.state
+
+    def stop(self, path, app_id):
+        raise NotImplementedError
+
+
+class DistributedApplication:
+    def __init__(self, app_id, applications):
+        self.app_id = app_id
+        self.applications: list[Application] = applications
+        self.cluster_size = len(applications)
+        self.assignments = np.zeros(self.cluster_size)
+        self.utility = 0
+        self.utility_history = list()
+
+    def update_dist_app(self, iteration, assignments):
+        self.utility_history.append(self.utility)
+
+    def get_utility(self):
+        return self.utility
+
+    def get_state(self):
+        states = np.zeros(self.cluster_size)
+        for i in range(0, self.cluster_size):
+            states[i] = self.applications[i].get_state()
+        return states
+
+    def get_normalized_state(self):
+        states = np.zeros(self.cluster_size)
+        for i in range(0, self.cluster_size):
+            states[i] = self.applications[i].get_normalized_state()
+        return states
+
+    def get_customized_state(self):
+        states = np.zeros(self.cluster_size)
+        for i in range(0, self.cluster_size):
+            states[i] = self.applications[i].get_customized_state()
+        return states
+
+    def get_cluster_size(self):
+        return self.cluster_size
+
+    def stop(self, path):
+        app_path = path + '/agent_' + str(self.app_id)
+        if not os.path.exists(app_path):
+            os.makedirs(app_path)
+        for i, app in enumerate(self.applications):
+            app.stop(app_path, i)
+        np.savetxt(app_path + '/utility.csv',
+                   self.utility_history, fmt='%d', delimiter=',')
