@@ -31,13 +31,13 @@ def read_data(direct, file, indices):
         count += 1
     return data[:, 0], group
 
-def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title, c_num, queue_util, weights_text, dd=None):
+def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title, c_num, queue_util, weights_text, dd=None, app_sub_id=0):
     res = dict()
     for sched in scheds:
         
-        main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}/{sched}_scheduler/queue_q1/'
+        main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}/{sched}_scheduler/queue_q{app_sub_id+1}/'
         if dd is not None:
-            main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q1/'
+            main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q{app_sub_id+1}/'
         if indices is None:
             data = [[]]
         else:
@@ -64,6 +64,8 @@ def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title, c_
         legs.append(pop_a)
     plt.legend(handles=legs)
     main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}/'
+    if dd is not None:
+        main_path = root + f'/logs/{agent_num}-{c_num}-{queue_util}util-{weights_text}-dd{dd}/'
     filename = 'classes_utils_{c}'.format(c=a_class)
     plt.savefig(os.path.join(main_path, filename + '.svg'))
     plt.savefig(os.path.join(main_path, filename + '.pdf'))
@@ -71,11 +73,11 @@ def plot_per_class(agent_num, indices, a_class_index, a_class, scheds, title, c_
     plt.close()
         
 
-def plot_per_sched(agent_num, sched, indices, c_num, util, weights_text, dd=None):
+def plot_per_sched(agent_num, sched, indices, c_num, util, weights_text, dd=None, app_sub_id=0):
     legs = ['w=1', 'w=2', 'w=3']
-    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}/{sched}_scheduler/queue_q1/'
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}/{sched}_scheduler/queue_q{app_sub_id+1}/'
     if dd is not None:
-        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q1/'
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q{app_sub_id+1}/'
     if indices is None:
         data = [[]]
     else:

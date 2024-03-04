@@ -26,10 +26,10 @@ def read_data(direct, file):
     return data[:, 0]
 
 
-def scheduler_welfare_plot_d(agent_num, sched, weights, color, c_num, util, weight_text, dd=None):
-    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/{sched}_scheduler/queue_q1/'
+def scheduler_welfare_plot_d(agent_num, sched, weights, color, c_num, util, weight_text, dd=None, app_type_id=0):
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/{sched}_scheduler/queue_q{app_type_id+1}/'
     if dd is not None:
-        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/{sched}_scheduler/queue_q1/'
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/{sched}_scheduler/queue_q{app_type_id+1}/'
     data = []
     for subdir, dirs, files in os.walk(main_path):
         for file in files:
@@ -50,19 +50,19 @@ def scheduler_welfare_plot_d(agent_num, sched, weights, color, c_num, util, weig
     pop_a = patches.Patch(color=color, label=sched)
     legends.append(pop_a)
     
-def scheduler_welfare_plot_b(agent_num, sched, weights, c_num, util, weight_text, dd=None):
-    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/{sched}_scheduler/queue_q1/'
+def scheduler_welfare_plot_b(agent_num, sched, weights, c_num, util, weight_text, dd=None, app_type_id=0):
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/{sched}_scheduler/queue_q{app_type_id+1}/'
     if dd is not None:
-        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/{sched}_scheduler/queue_q1/'
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}-dd{dd}/{sched}_scheduler/queue_q{app_type_id+1}/'
     data = []
     for subdir, dirs, files in os.walk(main_path):
         for file in files:
             if file == 'utility.csv':
                 data.append(read_data(subdir, file))
-    # data = np.array(data).T * 1. / agent_num
-    data = np.array(data).T * weights
-    data = data.mean(axis=0)
-    return data.sum(), data.std()
+    # data = np.array(data).T
+    myw = weights / weights.min()
+    data = np.array(data).T / myw
+    return data.mean(), data.std()
 
 def d_save_files(main_path):
     plt.legend(handles=legends)
@@ -80,15 +80,15 @@ def b_save_files(main_path):
     plt.close()
     
 def save_data(main_path, means, stds):
-    data = np.array([means, stds]).T
+    data = np.array([means, stds])
     np.savetxt(os.path.join(main_path, 'welfare_data.csv'),
-               data, fmt='%.2f', delimiter=',')
+               data, fmt='%.2f', delimiter='  & ')
 
-def plot_welfare(agent_num, scheds, weights, c_num, util, weight_text, dd=None):
+def plot_welfare(agent_num, scheds, weights, c_num, util, weight_text, dd=None, app_type_id=0):
     plt.figure()
     plt.ylabel('Weighted Social Welfare')
     for idx, sched in enumerate(scheds):
-        scheduler_welfare_plot_d(agent_num, sched, weights, colors[idx], c_num, util, weight_text, dd)
+        scheduler_welfare_plot_d(agent_num, sched, weights, colors[idx], c_num, util, weight_text, dd, app_type_id=app_type_id)
 
     main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/'
     if dd is not None:
@@ -100,7 +100,7 @@ def plot_welfare(agent_num, scheds, weights, c_num, util, weight_text, dd=None):
     means = []
     stds = []
     for idx, sched in enumerate(scheds):
-        mean, std = scheduler_welfare_plot_b(agent_num, sched, weights, c_num, util, weight_text, dd)
+        mean, std = scheduler_welfare_plot_b(agent_num, sched, weights, c_num, util, weight_text, dd, app_type_id=app_type_id)
         means.append(mean)
         stds.append(std)
     main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weight_text}/'

@@ -13,7 +13,7 @@ root = os.path.dirname(os.path.abspath(__file__)) + '/..'
 colors = script_utils.COLORS
 sched_titles = script_utils.SCHED_TITLES
 
-def main(agent_num, title, is_std, c_num, util, weights_text, dd=None, scheds = ['g_fair', 'themis', 'mtf']):
+def main(agent_num, title, is_std, c_num, util, weights_text, dd=None, scheds = script_utils.SCHED_TITLES.keys(), app_sub_id=0):
     means = []
     stds = []
     plt.figure()
@@ -22,7 +22,7 @@ def main(agent_num, title, is_std, c_num, util, weights_text, dd=None, scheds = 
         subdir_sys = f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}'
         if dd is not None:
             subdir_sys = f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}-dd{dd}'
-        subdir_sched = f'/{sched}_scheduler/queue_q1/'
+        subdir_sched = f'/{sched}_scheduler/queue_q{app_sub_id + 1}/'
         direct = root + subdir_sys + subdir_sched
         file = os.path.join(direct, 'avg_util.csv')
         mean = pd.read_csv(file).values[:, 0]

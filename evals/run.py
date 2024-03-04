@@ -17,47 +17,52 @@ from plot_welfare import plot_welfare
 from bar_plots import plot_average_plot_per_w
 
 sched_args = {
-    'g_fair': [1, 0, 1, 1],
-    'wrr': [1, 0, 2, 2],
-    'themis': [1, 0, 3, 3],
-    'ceei': [1, 0, 4, 4],
-    'mtf': [1, 0, 0, 0],
+    'themis': [0, 2, 2],
+    'g_fair': [0, 0, 0],
+    'l_dice': [0, 1, 1],
+    's_dice': [0, 4, 4],
+    'm_dice': [0, 3, 3]
 }
 
-def do_sched(sched, config_file_path, config, queue_app_type, indices):
+def do_sched(sched, config_file_path, config, deadline_type, indices, app_type_sub_id):
     num_agents = config["num_agents"]
     c_num = config["num_nodes"]
     queue_util = config["queue_util"]
+    deadline = config['deadline']
     classes = config['weight_of_classes']
     weights_text = "".join([str(item) for item in classes])
 
     print('====== ' + sched + ' =======')
     num_agents = config["num_agents"]
-    app_type_id, app_type_sub_id, policy_id, scheduler_id = sched_args[sched]
+    app_type_id, policy_id, scheduler_id = sched_args[sched]
     setup_main(config_file_path, app_type_id, app_type_sub_id,
-                policy_id, scheduler_id, queue_app_type=queue_app_type)
-    avg_main(num_agents, sched, c_num, queue_util, weights_text)
-    plot_per_sched(num_agents, sched, indices, c_num, queue_util, weights_text)
+                policy_id, scheduler_id, deadline_type=deadline_type)
+    avg_main(num_agents, sched, c_num, queue_util, weights_text, dd=deadline, app_sub_id=app_type_sub_id)
+    plot_per_sched(num_agents, sched, indices, c_num, queue_util, weights_text, dd=deadline, app_sub_id=app_type_sub_id)
 
-def recreate_folder(config, queue_app_type, sched=None):
+def recreate_folder(config, deadline_type, sched=None):
     num_agents = config["num_agents"]
     c_num = config["num_nodes"]
     util = config["queue_util"]
     classes = config['weight_of_classes']
+    deadline = config['deadline']
     weights_text = "".join([str(item) for item in classes])
     
     if sched is None:
         path = f"{root}/logs/{num_agents}-{c_num}-{util}util-{weights_text}/"
+        if deadline_type == 'dd':
+            path = f"{root}/logs/{num_agents}-{c_num}-{util}util-{weights_text}-dd{deadline}/"
         if os.path.exists(path):
             shutil.rmtree(path)
         os.makedirs(path)
         return
-    app_type_id, app_type_sub_id, _, scheduler_id = sched_args[sched]
+    app_type_id, _, scheduler_id = sched_args[sched]
     app_type = config["app_types"][app_type_id]
-    queue_app_type = config["queue_app_type"][queue_app_type]
     app_sub_type = config["app_sub_types"][app_type][app_type_sub_id]
     scheduler_type = config["scheduler_types"][scheduler_id]
     path = f"{root}/logs/{num_agents}-{c_num}-{util}util-{weights_text}/{scheduler_type}/{app_type}_{app_sub_type}"
+    if deadline_type == 'dd':
+        path = f"{root}/logs/{num_agents}-{c_num}-{util}util-{weights_text}-dd{deadline}/{scheduler_type}/{app_type}_{app_sub_type}"
     if os.path.exists(path):
         shutil.rmtree(path)
     os.makedirs(path)
@@ -68,20 +73,25 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--sched', type=str, default=None)
     parser.add_argument('-p', '--plot', type=bool, default=False)
     parser.add_argument('-r', '--should_run', type=bool, default=False)
-    parser.add_argument('-q', '--queue_app_type', type=str, default='dd')
+    parser.add_argument('-d', '--deadline_type', type=str, default='dd')
+    parser.add_argument('-q', '--app_type_sub_id', type=int, default=0)
     args = parser.parse_args()
     sched = args.sched
     should_run = args.should_run
     plot = args.plot
-    queue_app_type = args.queue_app_type
-    if queue_app_type == 'wo_dd':
-        title = 'Average Accumulated Queue Length'
-    elif queue_app_type == 'dd':
-        title = 'Average Throughput'
+    deadline_type = args.deadline_type
+    app_type_sub_id = args.app_type_sub_id
     config_file_path = root + "/config/sys_config_default.json"
     with open(config_file_path, 'r') as f:
         config = json.load(f)
         
+
+    deadline = None
+    if deadline_type == 'wo_dd':
+        title = 'Average Accumulated Queue Length'
+    elif deadline_type == 'dd':
+        title = 'Average Throughput'
+        deadline = config["deadline"]
     num_agents = config["num_agents"]
     num_nodes = config["num_nodes"]
     queue_util = config['queue_util']
@@ -93,12 +103,12 @@ if __name__ == '__main__':
 
     if should_run:
         if sched:
-            recreate_folder(config, queue_app_type, sched)
-            do_sched(sched, config_file_path, config, queue_app_type, indices)
+            recreate_folder(config, deadline_type, sched)
+            do_sched(sched, config_file_path, config, deadline_type, indices, app_type_sub_id)
         else:
-            recreate_folder(config, queue_app_type)
+            recreate_folder(config, deadline_type)
             for s in scheds:
-                do_sched(s, config_file_path, config, queue_app_type, indices)
+                do_sched(s, config_file_path, config, deadline_type, indices, app_type_sub_id)
 
     if plot:
         print('====== Plot =======')
@@ -107,8 +117,8 @@ if __name__ == '__main__':
         ws = get_agents_weights(num_agents, indices, classes)
         ws = ws / ws.sum()
         ws = ws.reshape(1, num_agents)
-        plot_main(num_agents, title, True, num_nodes, queue_util, weight_text, None, scheds)
+        plot_main(num_agents, title, True, num_nodes, queue_util, weight_text, dd=deadline, scheds=scheds, app_sub_id=app_type_sub_id)
         for idx, c in enumerate(classes):
-            plot_per_class(num_agents, indices, idx, c, scheds, title, num_nodes, queue_util, weight_text)
-        plot_welfare(num_agents, scheds, ws, num_nodes, queue_util, weight_text)
-        plot_average_plot_per_w(num_agents, indices, num_nodes, queue_util, weight_text)
+            plot_per_class(num_agents, indices, idx, c, scheds, title, num_nodes, queue_util, weight_text, dd=deadline, app_sub_id=app_type_sub_id)
+        plot_welfare(num_agents, scheds, ws, num_nodes, queue_util, weight_text, dd=deadline, app_type_id=app_type_sub_id)
+        plot_average_plot_per_w(num_agents, indices, num_nodes, queue_util, weight_text, dd=deadline, app_type_id=app_type_sub_id)

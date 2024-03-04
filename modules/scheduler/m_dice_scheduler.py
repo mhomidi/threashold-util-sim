@@ -21,8 +21,8 @@ class CEEIScheduler(Scheduler):
             ]
             objective = cp.Maximize(cp.sum(cp.log(v) @ self.agent_weights[active_users]))
             prob = cp.Problem(objective, constraints)
-            # prob.solve(cp.SCS)
-            prob.solve()
+            prob.solve(cp.SCS)
+            # prob.solve()
             if prob.status != cp.OPTIMAL:
                 raise Exception(prob.status)
             fractional_allocations[active_users, :] = x.value

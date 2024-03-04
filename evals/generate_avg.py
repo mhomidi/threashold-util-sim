@@ -20,10 +20,10 @@ def read_data(direct, file):
     return data[:, 0]
 
 
-def main(agent_num, sched, c_num, util, weights_text, dd=None):
-    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}/{sched}_scheduler/queue_q1/'
+def main(agent_num, sched, c_num, util, weights_text, dd=None, app_sub_id=0):
+    main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}/{sched}_scheduler/queue_q{app_sub_id + 1}/'
     if dd is not None:
-        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q1/'
+        main_path = root + f'/logs/{agent_num}-{c_num}-{util}util-{weights_text}-dd{dd}/{sched}_scheduler/queue_q{app_sub_id + 1}/'
     data = []
     for subdir, dirs, files in os.walk(main_path):
         for file in files:
@@ -31,6 +31,7 @@ def main(agent_num, sched, c_num, util, weights_text, dd=None):
             if file == 'utility.csv':
                 data.append(read_data(subdir, file))
     data = np.array(data).T
+    print(data.shape)
     mean = data.mean(axis=1)
     std = data.std(axis=1)
     data_min = data.min(axis=1)
