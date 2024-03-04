@@ -60,15 +60,11 @@ At each round $r$, Dice's market-based allocation mechanism determines the *comp
 A fractional allocation (A fractional allocation is an $n \times m$ matrix $x$, where $x_{i,j} \in [0, 1]$ is the fraction of node $j$ allocated to user $i$, and $\sum_i x_{i,j} = 1$ for all $j$)
 $x^r$ is considered a competitive-equilibrium allocation if there exists a price vector $p = (p_1, \dots, p_m)$, defining the price of each accelerator node, such that $x^r_i$ represents the maximum allocation that each user $i$ can purchase with their tokens under prices $p$:
 
-$
-    x^r_i \in \argmax_{x_i \in [0, 1]^m} ~~ u^r_i(x_i) ~~ \text{ s.t. } ~~ \sum_j x_{i,j}p_j \le t_i.
-$
+$x^r_i \in argmax_{x_i \in [0, 1]^m} ~~ u^r_i(x_i) ~~ \text{ s.t. } ~~ \sum_j x_{i,j}p_j \le t_i.$
 
 A competitive-equilibrium allocation $x^r$ always exists for each round $r$, and it can be computed via the solution to the following convex program:
 
-$
-Max. \sum_{i=1} t_i \log(u^r_i(x_i)),\quad s.t.\quad \sum_i x_{i,j} \le 1 , \quad \forall j \in 1, \dots, m.
-$
+$Max. \sum_{i=1} t_i \log(u^r_i(x_i)),\quad s.t.\quad \sum_i x_{i,j} \le 1 , \quad \forall j \in 1, \dots, m.$
 
 ### Game-theoretic Properties
 * L-Dice satisfies ex-ante Proportionality. *
