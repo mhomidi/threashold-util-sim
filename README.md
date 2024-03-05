@@ -4,7 +4,7 @@ Through theoretical analysis, we demonstrate that Dice guarantees diverse fairne
 Additionally, we empirically analyze Dice by comparing it to state-of-the-art allocation mechanisms, showing that Dice outperforms the state of the art across various performance and efficiency metrics while providing provable fairness guarantees.
 
 ## Installation
-Installation of MARS is too easy. At it is written in Python, you just need to create a virtual environment with python and install the dependencies:
+Installation of Dice is too easy. At it is written in Python, you just need to create a virtual environment with python and install the dependencies:
 
 ```
 git clone https://github.com/mhomidi/dice.git
